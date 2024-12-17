@@ -194,7 +194,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
 });
 
 // Start the server
-export async function startMCPServer() {
+export async function startMCPServer(): Promise<Server> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error('MCPM MCP Server running on stdio');
