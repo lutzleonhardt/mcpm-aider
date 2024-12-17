@@ -19,7 +19,7 @@ module.exports = {
       {
         useESM: true,
         tsconfig: {
-          module: 'ESNext',
+          module: 'Node16',
         },
       },
     ],

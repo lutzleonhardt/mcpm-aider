@@ -2,8 +2,8 @@
 import { Command } from 'commander';
 import prompts from 'prompts';
 import { ClaudeHostService } from './services/claude.js';
-import { join } from 'path';
 import { readFileSync } from 'fs';
+import { join } from 'path';
 
 const packageJson = JSON.parse(
   readFileSync(join(process.cwd(), 'package.json'), 'utf-8')
