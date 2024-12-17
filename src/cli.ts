@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Command } from 'commander';
 import prompts from 'prompts';
 import { ClaudeHostService } from './services/claude';
@@ -14,81 +15,75 @@ program
   .name('mcpm')
   .option('-d, --debug', 'enables verbose logging', false);
 
-// program
-//   .command('install')
-//   .description('Install a new MCP project')
-//   .action(() => {
-//     console.log('Install a new MCP project');
-//   });
-
 program
   .command('add')
-  .description(
-    `
-Add a new MCP server to your Claude App
+  .description('Add a new MCP server to your Claude App')
+  .argument('[name]', 'name of the MCP server')
+  .option('-c, --command <command>', 'command to run the server')
+  .option('-a, --args <args...>', 'arguments for the command')
+  .action(
+    async (
+      name: string | undefined,
+      options: { command?: string; args?: string[] }
+    ) => {
+      if (!name || !options.command) {
+        const questions = await prompts(
+          [
+            !name && {
+              type: 'text',
+              name: 'name',
+              message: 'Enter a name for the MCP server:',
+              validate: value =>
+                value.length > 0 ? true : 'Name cannot be empty',
+            },
+            !options.command && {
+              type: 'text',
+              name: 'command',
+              message: 'Enter the command to run the server:',
+              validate: value =>
+                value.length > 0 ? true : 'Command cannot be empty',
+            },
+            !options.args && {
+              type: 'text',
+              name: 'args',
+              message: 'Enter command arguments (space separated):',
+              initial: '',
+            },
+          ].filter(Boolean)
+        );
 
-Usage:
-    mcpm add
-    mcpm add <name>
-    mcpm add <name> -c <command> -a <args...>
-  `.trim()
-  )
-  .action(async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const questions = await prompts([
-      {
-        type: 'text',
-        name: 'name',
-        message: 'Enter a name for the MCP server:',
-        validate: value => (value.length > 0 ? true : 'Name cannot be empty'),
-      },
-      {
-        type: 'text',
-        name: 'command',
-        message: 'Enter the command to run the server:',
-        validate: value =>
-          value.length > 0 ? true : 'Command cannot be empty',
-      },
-      {
-        type: 'text',
-        name: 'args',
-        message: 'Enter command arguments (space separated):',
-        initial: '',
-      },
-    ]);
+        if (
+          (!questions.name && !name) ||
+          (!questions.command && !options.command)
+        ) {
+          console.log('Operation cancelled');
+          return;
+        }
 
-    if (!questions.name || !questions.command) {
-      console.log('Operation cancelled');
-      return;
+        name = name || questions.name;
+        options.command = options.command || questions.command;
+        options.args =
+          options.args ||
+          (questions.args
+            ? questions.args.split(' ').filter(arg => arg.length > 0)
+            : []);
+      }
+
+      const hostService = new ClaudeHostService();
+      await hostService.addMCPServer(name, {
+        command: options.command,
+        args: options.args || [],
+      });
+      console.log(`MCP server '${name}' added successfully`);
     }
-
-    const hostService = new ClaudeHostService();
-    await hostService.addMCPServer(questions.name, {
-      command: questions.command,
-      args: questions.args
-        ? (questions.args as string)
-            .split(' ')
-            .filter((arg: any) => arg.length > 0)
-        : [],
-    });
-    console.log(`MCP server '${questions.name}' added successfully`);
-  });
+  );
 
 program
   .command('remove')
-  .description(
-    `
-Remove a MCP server from your Claude App
-
-Usage:
-    mcpm remove
-    mcpm remove <name>
-  `.trim()
-  )
-  .action(async args => {
+  .description('Remove a MCP server from your Claude App')
+  .arguments('[name]', 'name of the MCP server to remove')
+  .action(async name => {
     const hostService = new ClaudeHostService();
-
-    let name = args.name;
 
     // If name not provided, show selection prompt
     if (!name) {
@@ -103,7 +98,6 @@ Usage:
         return;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       const response = await prompts({
         type: 'select',
         name: 'server',
@@ -134,18 +128,10 @@ Usage:
 
 program
   .command('disable')
-  .description(
-    `
-Disable an MCP server (moves it from Claude to storage)
-
-Usage:
-    mcpm disable
-    mcpm disable <name>
-  `.trim()
-  )
-  .action(async args => {
+  .description('Disable an MCP server (moves it from Claude to storage)')
+  .argument('[name]', 'name of the MCP server to disable')
+  .action(async name => {
     const hostService = new ClaudeHostService();
-    let name = args.name;
 
     if (!name) {
       const servers = await hostService.getMCPServers();
@@ -189,18 +175,10 @@ Usage:
 
 program
   .command('enable')
-  .description(
-    `
-Enable a disabled MCP server (moves it from storage to Claude)
-
-Usage:
-    mcpm enable
-    mcpm enable <name>
-  `.trim()
-  )
-  .action(async args => {
+  .description('Enable a disabled MCP server (moves it from storage to Claude)')
+  .argument('[name]', 'name of the MCP server to enable')
+  .action(async name => {
     const hostService = new ClaudeHostService();
-    let name = args.name;
 
     if (!name) {
       const servers = await hostService.getDisabledMCPServers();
