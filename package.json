@@ -1,6 +1,6 @@
 {
   "name": "@mcpm/cli",
-  "version": "0.1.2",
+  "version": "1.1.2",
   "description": "Your MCP CLI Manager. Helps you install/remove/search your MCP projects. You can also manage your MCP in Claude App with natural language.",
   "main": "lib/cli.js",
   "types": "lib/cli.d.ts",
@@ -30,7 +30,7 @@
     "type": "git",
     "url": "git+https://github.com/mcp-club/mcpm.git"
   },
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "author": {
     "name": "MCP Club",
     "email": "winrey@users.noreply.github.com",
