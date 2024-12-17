@@ -128,6 +128,9 @@ export class ClaudeHostService {
     server: MCPServer
   ): ClaudeConfig {
     config.mcpServers = config.mcpServers || {};
+    if (config.mcpServers[name]) {
+      throw new Error('Server already exists');
+    }
     config.mcpServers[name] = server;
     return config;
   }
