@@ -27,46 +27,58 @@ program
       options: { command?: string; args?: string[] }
     ) => {
       if (!name || !options.command) {
-        const questions = await prompts(
-          [
-            !name && {
-              type: 'text',
-              name: 'name',
-              message: 'Enter a name for the MCP server:',
-              validate: value =>
-                value.length > 0 ? true : 'Name cannot be empty',
-            },
-            !options.command && {
-              type: 'text',
-              name: 'command',
-              message: 'Enter the command to run the server:',
-              validate: value =>
-                value.length > 0 ? true : 'Command cannot be empty',
-            },
-            !options.args && {
-              type: 'text',
-              name: 'args',
-              message: 'Enter command arguments (space separated):',
-              initial: '',
-            },
-          ].filter(Boolean)
-        );
+        const questions: prompts.PromptObject<string>[] = [];
 
-        if (
-          (!questions.name && !name) ||
-          (!questions.command && !options.command)
-        ) {
+        if (!name) {
+          questions.push({
+            type: 'text',
+            name: 'name',
+            message: 'Enter a name for the MCP server:',
+            validate: (value: string | any[]) =>
+              value.length > 0 ? true : 'Name cannot be empty',
+          });
+        }
+
+        if (!options.command) {
+          questions.push({
+            type: 'text',
+            name: 'command',
+            message: 'Enter the command to run the server:',
+            validate: (value: string | any[]) =>
+              value.length > 0 ? true : 'Command cannot be empty',
+          });
+        }
+
+        if (!options.args) {
+          questions.push({
+            type: 'text',
+            name: 'args',
+            message: 'Enter command arguments (space separated):',
+            initial: '',
+          });
+        }
+
+        const responses = await prompts(questions);
+
+        name = name || responses.name;
+        if (!name || (!responses.command && !options.command)) {
           console.log('Operation cancelled');
           return;
         }
 
-        name = name || questions.name;
-        options.command = options.command || questions.command;
+        options.command = options.command || responses.command;
         options.args =
           options.args ||
-          (questions.args
-            ? questions.args.split(' ').filter(arg => arg.length > 0)
+          (responses.args
+            ? responses.args
+                .split(' ')
+                .filter((arg: string | any[]) => arg.length > 0)
             : []);
+      }
+
+      if (!options.command) {
+        console.log('Operation cancelled');
+        return;
       }
 
       const hostService = new ClaudeHostService();
@@ -81,7 +93,7 @@ program
 program
   .command('remove')
   .description('Remove a MCP server from your Claude App')
-  .arguments('[name]', 'name of the MCP server to remove')
+  .argument('[name]', 'name of the MCP server to remove')
   .action(async name => {
     const hostService = new ClaudeHostService();
 
