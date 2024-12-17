@@ -7,10 +7,12 @@ export interface MCPServer {
   args: string[];
 }
 
+export interface MCPServerMap {
+  [key: string]: MCPServer;
+}
+
 export interface ClaudeConfig {
-  mcpServers?: {
-    [key: string]: MCPServer;
-  };
+  mcpServers?: MCPServerMap;
 }
 
 export class ClaudeFileService {
@@ -71,6 +73,10 @@ export class ClaudeFileService {
     const newConfig = await modifier(config);
     await this.writeClaudeConfigFile(newConfig);
     return newConfig;
+  }
+
+  async saveClaudeConfig(config: ClaudeConfig): Promise<void> {
+    await this.writeClaudeConfigFile(config);
   }
 
   static getClaudeConfigPath(): string {
@@ -143,14 +149,17 @@ export class ClaudeHostService {
     );
   }
 
-  async removeMCPServer(serverName: string): Promise<ClaudeConfig> {
-    return await this.fileSrv.modifyClaudeConfigFile(config =>
-      this.removeMCPServerFromConfig(config, serverName)
-    );
+  async removeMCPServer(name: string): Promise<void> {
+    const config = await this.fileSrv.getClaudeConfig();
+    if (!config?.mcpServers?.[name]) {
+      throw new Error(`MCP server '${name}' not found`);
+    }
+    delete config.mcpServers[name];
+    await this.fileSrv.saveClaudeConfig(config);
   }
 
-  async listMCPServers(): Promise<MCPServer[]> {
+  async getMCPServers(): Promise<MCPServerMap> {
     const config = await this.fileSrv.getClaudeConfig();
-    return Object.values(config?.mcpServers || {});
+    return config?.mcpServers || {};
   }
 }

@@ -52,7 +52,7 @@ Usage:
       {
         type: 'text',
         name: 'args',
-        message: 'Enter command argumentcas (space separated):',
+        message: 'Enter command arguments (space separated):',
         initial: '',
       },
     ]);
@@ -74,6 +74,64 @@ Usage:
     console.log(`MCP server '${questions.name}' added successfully`);
   });
 
+program
+  .command('remove')
+  .description(
+    `
+Remove a MCP server from your Claude App
+
+Usage:
+    mcpm remove
+    mcpm remove <name>
+  `.trim()
+  )
+  .action(async args => {
+    const hostService = new ClaudeHostService();
+
+    let name = args.name;
+
+    // If name not provided, show selection prompt
+    if (!name) {
+      const servers = await hostService.getMCPServers();
+      const choices = Object.entries(servers).map(([name, server]) => ({
+        title: `${name} (${server.command} ${server.args.join(' ')})`,
+        value: name,
+      }));
+
+      if (choices.length === 0) {
+        console.log('No MCP servers found');
+        return;
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      const response = await prompts({
+        type: 'select',
+        name: 'server',
+        message: 'Select a server to remove:',
+        choices,
+      });
+
+      if (!response.server) {
+        console.log('Operation cancelled');
+        return;
+      }
+
+      name = response.server;
+    }
+
+    if (!name) {
+      console.log('Operation cancelled');
+      return;
+    }
+
+    try {
+      await hostService.removeMCPServer(name);
+      console.log(`MCP server '${name}' removed successfully`);
+    } catch (error) {
+      console.error(`Failed to remove server '${name}':`, error);
+    }
+  });
+
 const hostCmd = program
   .command('host')
   .description('Manage your MCP hosts like Claude App');
@@ -85,7 +143,7 @@ hostCmd
     console.log('Scanning Claude');
 
     claudeSrv
-      .listMCPServers()
+      .getMCPServers()
       .then(config => {
         console.log(JSON.stringify(config, null, 2));
       })
