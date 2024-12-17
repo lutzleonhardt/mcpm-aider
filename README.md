@@ -1,44 +1,61 @@
-# typescript-npm-cli-template
+# MCPM CLI
 
-> Boilerplate to kickstart creating a Node.js command-line tool
+A command-line tool for managing MCP servers in Claude App.
 
-Inspired by [node-cli-boilerplate](https://github.com/sindresorhus/node-cli-boilerplate)
-
-## Getting started
-
-### Set up your repository
-
-**Click the "Use this template" button.**
-
-Alternatively, create a new directory and then run:
+## Installation
 
 ```bash
-curl -fsSL https://github.com/ryansonshine/typescript-npm-cli-template/archive/main.tar.gz | tar -xz --strip-components=1
+npm install -g mcpm-cli
 ```
 
-Replace `FULL_NAME`, `GITHUB_USER`, and `REPO_NAME` in the script below with your own details to personalize your new package:
+## Usage
+
+### Add a new MCP server
 
 ```bash
-FULL_NAME="John Smith"
-GITHUB_USER="johnsmith"
-REPO_NAME="my-cool-package"
-sed -i.mybak "s/\([\/\"]\)(ryansonshine)/$GITHUB_USER/g; s/typescript-npm-cli-template\|my-cli-name/$REPO_NAME/g; s/Ryan Sonshine/$FULL_NAME/g" package.json package-lock.json README.md
-rm *.mybak
+mcpm add                    # Interactive mode
+mcpm add <name>            # Specify server name
 ```
 
-### Add NPM Token
+### Remove an MCP server
 
-Add your npm token to your GitHub repository secrets as `NPM_TOKEN`.
+```bash
+mcpm remove                # Interactive mode
+mcpm remove <name>         # Specify server name
+```
 
-### Add Codecov integration
+### Disable an MCP server
 
-Enable the Codecov GitHub App [here](https://github.com/apps/codecov).
+Moves a server from Claude App to storage, making it temporarily unavailable.
 
-**Remove everything from here and above**
+```bash
+mcpm disable               # Interactive mode
+mcpm disable <name>        # Specify server name
+```
 
----
+### Enable an MCP server
 
-# my-cli-name
+Moves a previously disabled server from storage back to Claude App.
+
+```bash
+mcpm enable               # Interactive mode
+mcpm enable <name>        # Specify server name
+```
+
+### List MCP servers
+
+```bash
+mcpm host scan            # Shows all configured MCP servers
+```
+
+## Configuration
+
+- Active servers are stored in Claude App's configuration
+- Disabled servers are stored in `~/.mcpm/config.json`
+
+## License
+
+MIT 
 
 [![npm package][npm-img]][npm-url]
 [![Build Status][build-img]][build-url]
@@ -48,40 +65,17 @@ Enable the Codecov GitHub App [here](https://github.com/apps/codecov).
 [![Commitizen Friendly][commitizen-img]][commitizen-url]
 [![Semantic Release][semantic-release-img]][semantic-release-url]
 
-> My awesome command-line tool
-
-## Install
-
-```bash
-npm install my-cli-name
-```
-
-## Usage
-
-```bash
-Usage: my-command [options]
-
-Options:
-  -V, --version            output the version number
-  -d, --debug              enables verbose logging (default: false)
-
-Examples:
-
-  $ my-command --version
-  1.0.0
-```
-
-[build-img]:https://github.com/ryansonshine/typescript-npm-cli-template/actions/workflows/release.yml/badge.svg
-[build-url]:https://github.com/ryansonshine/typescript-npm-cli-template/actions/workflows/release.yml
-[downloads-img]:https://img.shields.io/npm/dt/typescript-npm-cli-template
-[downloads-url]:https://www.npmtrends.com/typescript-npm-cli-template
-[npm-img]:https://img.shields.io/npm/v/typescript-npm-cli-template
-[npm-url]:https://www.npmjs.com/package/typescript-npm-cli-template
-[issues-img]:https://img.shields.io/github/issues/ryansonshine/typescript-npm-cli-template
-[issues-url]:https://github.com/ryansonshine/typescript-npm-cli-template/issues
-[codecov-img]:https://codecov.io/gh/ryansonshine/typescript-npm-cli-template/branch/main/graph/badge.svg
-[codecov-url]:https://codecov.io/gh/ryansonshine/typescript-npm-cli-template
-[semantic-release-img]:https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg
-[semantic-release-url]:https://github.com/semantic-release/semantic-release
-[commitizen-img]:https://img.shields.io/badge/commitizen-friendly-brightgreen.svg
-[commitizen-url]:http://commitizen.github.io/cz-cli/
+[npm-img]: https://img.shields.io/npm/v/mcpm-cli
+[npm-url]: https://www.npmjs.com/package/mcpm-cli
+[build-img]: https://github.com/weightwave/mcpm-cli/actions/workflows/release.yml/badge.svg
+[build-url]: https://github.com/weightwave/mcpm-cli/actions/workflows/release.yml
+[downloads-img]: https://img.shields.io/npm/dt/mcpm-cli
+[downloads-url]: https://www.npmjs.com/package/mcpm-cli
+[issues-img]: https://img.shields.io/github/issues/weightwave/mcpm-cli
+[issues-url]: https://github.com/weightwave/mcpm-cli/issues
+[codecov-img]: https://codecov.io/gh/weightwave/mcpm-cli/branch/main/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/weightwave/mcpm-cli
+[semantic-release-img]: https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg
+[semantic-release-url]: https://github.com/semantic-release/semantic-release
+[commitizen-img]: https://img.shields.io/badge/commitizen-friendly-brightgreen.svg
+[commitizen-url]: http://commitizen.github.io/cz-cli/
