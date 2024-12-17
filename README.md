@@ -12,7 +12,7 @@ A command-line tool for managing MCP servers in Claude App.
 ## Installation
 
 ```bash
-npm install -g mcpm-cli
+npm install -g @mcpm/cli
 ```
 
 ## Usage
