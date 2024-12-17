@@ -5,24 +5,34 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
+import { ClaudeHostService } from './services/claude.js';
 
-const NWS_API_BASE = 'https://api.weather.gov';
-const USER_AGENT = 'weather-app/1.0';
+// Initialize Claude Host Service
+const claudeSrv = new ClaudeHostService();
 
-// Define Zod schemas for validation
-const AlertsArgumentsSchema = z.object({
-  state: z.string().length(2),
+// Define Zod schemas for MCP server management
+const MCPServerConfigSchema = z.object({
+  command: z.string(),
+  args: z.array(z.string()),
 });
 
-const ForecastArgumentsSchema = z.object({
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
+const AddServerArgumentsSchema = z.object({
+  name: z.string(),
+  config: MCPServerConfigSchema,
+});
+
+const RemoveServerArgumentsSchema = z.object({
+  name: z.string(),
+});
+
+const EnableDisableServerArgumentsSchema = z.object({
+  name: z.string(),
 });
 
 // Create server instance
 const server = new Server(
   {
-    name: 'weather',
+    name: 'mcpm',
     version: '1.0.0',
   },
   {
@@ -34,246 +44,142 @@ const server = new Server(
 
 // List available tools
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  await Promise.resolve(); // Add await to satisfy require-await
+  await Promise.resolve();
   return {
     tools: [
       {
-        name: 'get-alerts',
-        description: 'Get weather alerts for a state',
+        name: 'add-server',
+        description: 'Add a new MCP server',
         inputSchema: {
           type: 'object',
           properties: {
-            state: {
+            name: {
               type: 'string',
-              description: 'Two-letter state code (e.g. CA, NY)',
+              description: 'Name of the MCP server',
+            },
+            config: {
+              type: 'object',
+              properties: {
+                command: {
+                  type: 'string',
+                  description: 'Command to run the server',
+                },
+                args: {
+                  type: 'array',
+                  items: {
+                    type: 'string',
+                  },
+                  description: 'Arguments for the command',
+                },
+              },
+              required: ['command', 'args'],
             },
           },
-          required: ['state'],
+          required: ['name', 'config'],
         },
       },
       {
-        name: 'get-forecast',
-        description: 'Get weather forecast for a location',
+        name: 'remove-server',
+        description: 'Remove an MCP server',
         inputSchema: {
           type: 'object',
           properties: {
-            latitude: {
-              type: 'number',
-              description: 'Latitude of the location',
-            },
-            longitude: {
-              type: 'number',
-              description: 'Longitude of the location',
+            name: {
+              type: 'string',
+              description: 'Name of the MCP server to remove',
             },
           },
-          required: ['latitude', 'longitude'],
+          required: ['name'],
+        },
+      },
+      {
+        name: 'enable-server',
+        description: 'Enable a disabled MCP server',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Name of the MCP server to enable',
+            },
+          },
+          required: ['name'],
+        },
+      },
+      {
+        name: 'disable-server',
+        description: 'Disable an MCP server',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Name of the MCP server to disable',
+            },
+          },
+          required: ['name'],
         },
       },
     ],
   };
 });
 
-// Helper function for making NWS API requests
-async function makeNWSRequest<T>(url: string): Promise<T | null> {
-  const headers = {
-    'User-Agent': USER_AGENT,
-    Accept: 'application/geo+json',
-  };
-
-  try {
-    const response = await fetch(url, { headers });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return (await response.json()) as T;
-  } catch (error) {
-    console.error('Error making NWS request:', error);
-    return null;
-  }
-}
-
-interface AlertFeature {
-  properties: {
-    event?: string;
-    areaDesc?: string;
-    severity?: string;
-    status?: string;
-    headline?: string;
-  };
-}
-
-// Format alert data
-function formatAlert(feature: AlertFeature): string {
-  const props = feature.properties;
-  return [
-    `Event: ${props.event || 'Unknown'}`,
-    `Area: ${props.areaDesc || 'Unknown'}`,
-    `Severity: ${props.severity || 'Unknown'}`,
-    `Status: ${props.status || 'Unknown'}`,
-    `Headline: ${props.headline || 'No headline'}`,
-    '---',
-  ].join('\n');
-}
-
-interface ForecastPeriod {
-  name?: string;
-  temperature?: number;
-  temperatureUnit?: string;
-  windSpeed?: string;
-  windDirection?: string;
-  shortForecast?: string;
-}
-
-interface AlertsResponse {
-  features: AlertFeature[];
-}
-
-interface PointsResponse {
-  properties: {
-    forecast?: string;
-  };
-}
-
-interface ForecastResponse {
-  properties: {
-    periods: ForecastPeriod[];
-  };
-}
-
 // Handle tool execution
 server.setRequestHandler(CallToolRequestSchema, async request => {
   const { name, arguments: args } = request.params;
 
   try {
-    if (name === 'get-alerts') {
-      const { state } = AlertsArgumentsSchema.parse(args);
-      const stateCode = state.toUpperCase();
-
-      const alertsUrl = `${NWS_API_BASE}/alerts?area=${stateCode}`;
-      const alertsData = await makeNWSRequest<AlertsResponse>(alertsUrl);
-
-      if (!alertsData) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: 'Failed to retrieve alerts data',
-            },
-          ],
-        };
+    switch (name) {
+      case 'add-server': {
+        const { name, config } = AddServerArgumentsSchema.parse(args);
+        try {
+          await claudeSrv.addMCPServer(name, config);
+          return {
+            result: `MCP server '${name}' added successfully`,
+          };
+        } catch (error) {
+          throw new Error(`Failed to add server '${name}': ${error}`);
+        }
       }
 
-      const features = alertsData.features || [];
-      if (features.length === 0) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `No active alerts for ${stateCode}`,
-            },
-          ],
-        };
+      case 'remove-server': {
+        const { name } = RemoveServerArgumentsSchema.parse(args);
+        try {
+          await claudeSrv.removeMCPServer(name);
+          return {
+            result: `MCP server '${name}' removed successfully`,
+          };
+        } catch (error) {
+          throw new Error(`Failed to remove server '${name}': ${error}`);
+        }
       }
 
-      const formattedAlerts = features.map(formatAlert).slice(0, 20); // only take the first 20 alerts;
-      const alertsText = `Active alerts for ${stateCode}:\n\n${formattedAlerts.join(
-        '\n'
-      )}`;
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: alertsText,
-          },
-        ],
-      };
-    } else if (name === 'get-forecast') {
-      const { latitude, longitude } = ForecastArgumentsSchema.parse(args);
-
-      // Get grid point data
-      const pointsUrl = `${NWS_API_BASE}/points/${latitude.toFixed(
-        4
-      )},${longitude.toFixed(4)}`;
-      const pointsData = await makeNWSRequest<PointsResponse>(pointsUrl);
-
-      if (!pointsData) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Failed to retrieve grid point data for coordinates: ${latitude}, ${longitude}. This location may not be supported by the NWS API (only US locations are supported).`,
-            },
-          ],
-        };
+      case 'enable-server': {
+        const { name } = EnableDisableServerArgumentsSchema.parse(args);
+        try {
+          await claudeSrv.enableMCPServer(name);
+          return {
+            result: `MCP server '${name}' enabled successfully`,
+          };
+        } catch (error) {
+          throw new Error(`Failed to enable server '${name}': ${error}`);
+        }
       }
 
-      const forecastUrl = pointsData.properties?.forecast;
-      if (!forecastUrl) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: 'Failed to get forecast URL from grid point data',
-            },
-          ],
-        };
+      case 'disable-server': {
+        const { name } = EnableDisableServerArgumentsSchema.parse(args);
+        try {
+          await claudeSrv.disableMCPServer(name);
+          return {
+            result: `MCP server '${name}' disabled successfully`,
+          };
+        } catch (error) {
+          throw new Error(`Failed to disable server '${name}': ${error}`);
+        }
       }
 
-      // Get forecast data
-      const forecastData = await makeNWSRequest<ForecastResponse>(forecastUrl);
-      if (!forecastData) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: 'Failed to retrieve forecast data',
-            },
-          ],
-        };
-      }
-
-      const periods = forecastData.properties?.periods || [];
-      if (periods.length === 0) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: 'No forecast periods available',
-            },
-          ],
-        };
-      }
-
-      // Format forecast periods
-      const formattedForecast = periods.map((period: ForecastPeriod) =>
-        [
-          `${period.name || 'Unknown'}:`,
-          `Temperature: ${period.temperature || 'Unknown'}°${
-            period.temperatureUnit || 'F'
-          }`,
-          `Wind: ${period.windSpeed || 'Unknown'} ${
-            period.windDirection || ''
-          }`,
-          `${period.shortForecast || 'No forecast available'}`,
-          '---',
-        ].join('\n')
-      );
-
-      const forecastText = `Forecast for ${latitude}, ${longitude}:\n\n${formattedForecast.join(
-        '\n'
-      )}`;
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: forecastText,
-          },
-        ],
-      };
-    } else {
-      throw new Error(`Unknown tool: ${name}`);
+      default:
+        throw new Error(`Unknown tool: ${name}`);
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -288,14 +194,9 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
 });
 
 // Start the server
-async function main() {
+export async function startMCPServer() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error('Weather MCP Server running on stdio');
+  console.error('MCPM MCP Server running on stdio');
+  return server;
 }
-
-main().catch(error => {
-  console.error('Fatal error in main():', error);
-  // eslint-disable-next-line no-process-exit
-  process.exit(1);
-});

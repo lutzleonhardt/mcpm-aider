@@ -256,4 +256,12 @@ hostCmd
       });
   });
 
+program
+  .command('mcp')
+  .description('Start the MCPM MCP server')
+  .action(async () => {
+    const { startMCPServer } = await import('./mcp.js');
+    await startMCPServer();
+  });
+
 program.parse(process.argv);
