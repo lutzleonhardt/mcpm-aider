@@ -7,6 +7,7 @@ module.exports = {
     '<rootDir>/src/**/*.ts',
     '!<rootDir>/src/__tests__/**/*.ts',
     '!<rootDir>/src/types/**/*.ts',
+    '!<rootDir>/src/utils/version.ts',  // Exclude version.ts from coverage
   ],
   collectCoverage: true,
   moduleNameMapper: {
@@ -29,5 +30,6 @@ module.exports = {
       },
     ],
   },
+  transformIgnorePatterns: [],
   setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
 };
