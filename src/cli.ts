@@ -2,13 +2,7 @@
 import { Command } from 'commander';
 import prompts from 'prompts';
 import { ClaudeHostService } from './services/claude.js';
-import { readFileSync } from 'fs';
-import { join } from 'path';
-
-const packageJson = JSON.parse(
-  readFileSync(join(process.cwd(), 'package.json'), 'utf-8')
-);
-const version: string = packageJson.version;
+import { version } from './utils/version.js';
 
 const program = new Command();
 

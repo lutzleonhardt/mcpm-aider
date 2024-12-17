@@ -6,6 +6,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { ClaudeHostService } from './services/claude.js';
+import { version } from './utils/version.js';
 
 // Initialize Claude Host Service
 const claudeSrv = new ClaudeHostService();
@@ -33,7 +34,7 @@ const EnableDisableServerArgumentsSchema = z.object({
 const server = new Server(
   {
     name: 'mcpm',
-    version: '1.0.0',
+    version,
   },
   {
     capabilities: {

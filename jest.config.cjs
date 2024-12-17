@@ -11,6 +11,7 @@ module.exports = {
   collectCoverage: true,
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
+    '^(\\.{1,2}/.*)\\.json$': '$1.json',
   },
   extensionsToTreatAsEsm: ['.ts'],
   transform: {
@@ -19,7 +20,11 @@ module.exports = {
       {
         useESM: true,
         tsconfig: {
-          module: 'Node16',
+          module: 'ESNext',
+          target: 'es2022',
+          resolveJsonModule: true,
+          moduleResolution: 'node',
+          esModuleInterop: true,
         },
       },
     ],
