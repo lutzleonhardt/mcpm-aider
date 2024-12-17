@@ -59,3 +59,12 @@ mcpm host scan            # Shows all configured MCP servers
 
 - Active servers are stored in Claude App's configuration
 - Disabled servers are stored in `~/.mcpm/config.json`
+
+## Development
+
+Publish A new version
+
+```bash
+git tag v1.1.2
+git push origin v1.1.2
+```
