@@ -1,6 +1,7 @@
 import path from 'path';
 import os from 'os';
 import { promises as fsp } from 'fs';
+import { StorageService } from './storage';
 
 export interface MCPServer {
   command: string;
@@ -161,5 +162,51 @@ export class ClaudeHostService {
   async getMCPServers(): Promise<MCPServerMap> {
     const config = await this.fileSrv.getClaudeConfig();
     return config?.mcpServers || {};
+  }
+
+  async disableMCPServer(name: string): Promise<void> {
+    const config = await this.fileSrv.getClaudeConfig();
+    if (!config?.mcpServers?.[name]) {
+      throw new Error(`MCP server '${name}' not found`);
+    }
+
+    const server = config.mcpServers[name];
+    const storage = StorageService.getInstance();
+    const disabledServers = storage.get('claudeMcpServers') || {};
+
+    disabledServers[name] = {
+      args: server,
+      enabled: false,
+      claudeId: name,
+    };
+
+    storage.set('claudeMcpServers', disabledServers);
+    delete config.mcpServers[name];
+    await this.fileSrv.saveClaudeConfig(config);
+  }
+
+  async enableMCPServer(name: string): Promise<void> {
+    const storage = StorageService.getInstance();
+    const disabledServers = storage.get('claudeMcpServers') || {};
+
+    if (!disabledServers[name]) {
+      throw new Error(`Disabled MCP server '${name}' not found`);
+    }
+
+    const server = disabledServers[name].args;
+    await this.addMCPServer(name, server);
+
+    delete disabledServers[name];
+    storage.set('claudeMcpServers', disabledServers);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async getDisabledMCPServers(): Promise<MCPServerMap> {
+    const storage = StorageService.getInstance();
+    const disabledServers = storage.get('claudeMcpServers') || {};
+    return Object.entries(disabledServers).reduce((acc, [name, config]) => {
+      acc[name] = config.args;
+      return acc;
+    }, {} as MCPServerMap);
   }
 }

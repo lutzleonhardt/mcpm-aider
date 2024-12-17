@@ -132,6 +132,116 @@ Usage:
     }
   });
 
+program
+  .command('disable')
+  .description(
+    `
+Disable an MCP server (moves it from Claude to storage)
+
+Usage:
+    mcpm disable
+    mcpm disable <name>
+  `.trim()
+  )
+  .action(async args => {
+    const hostService = new ClaudeHostService();
+    let name = args.name;
+
+    if (!name) {
+      const servers = await hostService.getMCPServers();
+      const choices = Object.entries(servers).map(([name, server]) => ({
+        title: `${name} (${server.command} ${server.args.join(' ')})`,
+        value: name,
+      }));
+
+      if (choices.length === 0) {
+        console.log('No MCP servers found');
+        return;
+      }
+
+      const response = await prompts({
+        type: 'select',
+        name: 'server',
+        message: 'Select a server to disable:',
+        choices,
+      });
+
+      if (!response.server) {
+        console.log('Operation cancelled');
+        return;
+      }
+
+      name = response.server;
+    }
+
+    if (!name) {
+      console.log('Operation cancelled');
+      return;
+    }
+
+    try {
+      await hostService.disableMCPServer(name);
+      console.log(`MCP server '${name}' disabled successfully`);
+    } catch (error) {
+      console.error(`Failed to disable server '${name}':`, error);
+    }
+  });
+
+program
+  .command('enable')
+  .description(
+    `
+Enable a disabled MCP server (moves it from storage to Claude)
+
+Usage:
+    mcpm enable
+    mcpm enable <name>
+  `.trim()
+  )
+  .action(async args => {
+    const hostService = new ClaudeHostService();
+    let name = args.name;
+
+    if (!name) {
+      const servers = await hostService.getDisabledMCPServers();
+      const choices = Object.entries(servers).map(([name, server]) => ({
+        title: `${name} (${server.command} ${server.args.join(' ')})`,
+        value: name,
+      }));
+
+      if (choices.length === 0) {
+        console.log('No disabled MCP servers found');
+        return;
+      }
+
+      const response = await prompts({
+        type: 'select',
+        name: 'server',
+        message: 'Select a server to enable:',
+        choices,
+      });
+
+      if (!response.server) {
+        console.log('Operation cancelled');
+        return;
+      }
+
+      name = response.server;
+    }
+
+    if (!name) {
+      console.log('Operation cancelled');
+      return;
+    }
+
+    try {
+      await hostService.enableMCPServer(name);
+      console.log(`MCP server '${name}' enabled successfully`);
+    } catch (error) {
+      console.error(`Failed to enable server '${name}':`, error);
+    }
+  });
+
 const hostCmd = program
   .command('host')
   .description('Manage your MCP hosts like Claude App');
