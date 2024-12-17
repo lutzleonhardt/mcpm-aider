@@ -1,6 +1,6 @@
 {
   "name": "@mcpm/cli",
-  "version": "0.0.0-development",
+  "version": "0.1.0",
   "description": "Your MCP CLI Manager. Helps you install/remove/search your MCP projects. You can also manage your MCP in Claude App with natural language.",
   "main": "lib/cli.js",
   "types": "lib/cli.d.ts",
@@ -22,7 +22,8 @@
     "semantic-release": "semantic-release",
     "test:watch": "jest --watch",
     "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "publish": "npm run build && npm publish --access public"
   },
   "repository": {
     "type": "git",
