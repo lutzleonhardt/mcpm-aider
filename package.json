@@ -1,14 +1,16 @@
 {
-  "name": "typescript-npm-cli-template",
+  "name": "@mcpm/cli",
   "version": "0.0.0-development",
-  "description": "A template for creating npm CLI tools using TypeScript and VSCode",
+  "description": "Your MCP CLI Manager. Helps you install/remove/search your MCP projects. You can also manage your MCP in Claude App with natural language.",
+  "main": "lib/cli.js",
+  "types": "lib/cli.d.ts",
   "files": [
     "!lib/__tests__/**/*",
     "lib/**/*",
     "bin/**/*"
   ],
   "bin": {
-    "my-command": "./bin/index.js"
+    "mcpm": "./bin/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -24,13 +26,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ryansonshine/typescript-npm-cli-template.git"
+    "url": "git+https://github.com/mcp-club/mcpm.git"
   },
   "license": "MIT",
   "author": {
-    "name": "Ryan Sonshine",
-    "email": "ryansonshine@users.noreply.github.com",
-    "url": "https://github.com/ryansonshine"
+    "name": "MCP Club",
+    "email": "winrey@users.noreply.github.com",
+    "url": "https://github.com/mcp-club"
   },
   "engines": {
     "node": ">=12.0"
@@ -48,17 +50,23 @@
     "codecov"
   ],
   "bugs": {
-    "url": "https://github.com/ryansonshine/typescript-npm-cli-template/issues"
+    "url": "https://github.com/mcp-club/mcpm/issues"
   },
-  "homepage": "https://github.com/ryansonshine/typescript-npm-cli-template#readme",
+  "homepage": "https://github.com/mcp-club/mcpm#readme",
   "dependencies": {
-    "commander": "^7.2.0"
+    "@modelcontextprotocol/sdk": "^1.0.3",
+    "commander": "^7.2.0",
+    "conf": "^13.1.0",
+    "env-paths": "^3.0.0",
+    "prompts": "^2.4.2",
+    "yoctocolors": "^2.1.1",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@ryansonshine/commitizen": "^4.2.8",
     "@ryansonshine/cz-conventional-changelog": "^3.3.4",
     "@types/jest": "^27.5.2",
-    "@types/node": "^12.20.11",
+    "@types/node": "^12.20.55",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
     "chalk": "^4.1.1",
@@ -75,7 +83,7 @@
     "semantic-release": "^21.0.1",
     "ts-jest": "^27.0.5",
     "ts-node": "^10.2.1",
-    "typescript": "^4.2.4"
+    "typescript": "^4.9.5"
   },
   "config": {
     "commitizen": {
