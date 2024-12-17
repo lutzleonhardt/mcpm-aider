@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import prompts from 'prompts';
 import { ClaudeHostService } from './services/claude';
 
 const packageJson = require('../package.json');
@@ -22,9 +23,55 @@ program
 
 program
   .command('add')
-  .description('Add a new MCP host')
-  .action(() => {
-    console.log('Add a new MCP host');
+  .description(
+    `
+Add a new MCP server to your Claude App
+
+Usage:
+    mcpm add
+    mcpm add <name>
+    mcpm add <name> -c <command> -a <args...>
+  `.trim()
+  )
+  .action(async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    const questions = await prompts([
+      {
+        type: 'text',
+        name: 'name',
+        message: 'Enter a name for the MCP server:',
+        validate: value => (value.length > 0 ? true : 'Name cannot be empty'),
+      },
+      {
+        type: 'text',
+        name: 'command',
+        message: 'Enter the command to run the server:',
+        validate: value =>
+          value.length > 0 ? true : 'Command cannot be empty',
+      },
+      {
+        type: 'text',
+        name: 'args',
+        message: 'Enter command argumentcas (space separated):',
+        initial: '',
+      },
+    ]);
+
+    if (!questions.name || !questions.command) {
+      console.log('Operation cancelled');
+      return;
+    }
+
+    const hostService = new ClaudeHostService();
+    await hostService.addMCPServer(questions.name, {
+      command: questions.command,
+      args: questions.args
+        ? (questions.args as string)
+            .split(' ')
+            .filter((arg: any) => arg.length > 0)
+        : [],
+    });
+    console.log(`MCP server '${questions.name}' added successfully`);
   });
 
 const hostCmd = program
