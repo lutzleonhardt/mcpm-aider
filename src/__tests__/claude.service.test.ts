@@ -4,7 +4,7 @@ import {
   ClaudeHostService,
   MCPServer,
   ClaudeConfig,
-} from '../services/claude';
+} from '../services/claude.js';
 
 describe('ClaudeHostService', () => {
   let claudeHostService: ClaudeHostService;

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { MCPServer } from './claude';
+import { MCPServer } from './claude.js';
 
 export interface MCPServerConfig {
   claudeId?: string;

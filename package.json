@@ -12,12 +12,13 @@
   "bin": {
     "mcpm": "./bin/index.js"
   },
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf ./lib/",
     "cm": "cz",
-    "lint": "eslint ./src/ --fix",
-    "start": "TS_NODE_FILES=true ts-node ./src/cli.ts",
+    "lint": "eslint --config .eslintrc.cjs ./src/ --fix",
+    "start": "tsx ./src/cli.ts",
     "prepare": "husky install",
     "semantic-release": "semantic-release",
     "test:watch": "jest --watch",
@@ -85,6 +86,7 @@
     "semantic-release": "^21.0.1",
     "ts-jest": "^27.1.5",
     "ts-node": "^10.2.1",
+    "tsx": "^3.14.0",
     "typescript": "^4.9.5"
   },
   "config": {
@@ -93,7 +95,7 @@
     }
   },
   "lint-staged": {
-    "*.ts": "eslint --cache --cache-location .eslintcache --fix"
+    "*.ts": "eslint --config .eslintrc.cjs --cache --cache-location .eslintcache --fix"
   },
   "release": {
     "branches": [

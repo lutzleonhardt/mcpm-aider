@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { ClaudeHostService } from '../services/claude';
+import { ClaudeHostService } from '../services/claude.js';
 
 jest.mock('../services/claude');
 

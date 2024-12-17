@@ -1,7 +1,7 @@
 import path from 'path';
 import os from 'os';
 import { promises as fsp } from 'fs';
-import { StorageService } from './storage';
+import { StorageService } from './storage.js';
 
 export interface MCPServer {
   command: string;
