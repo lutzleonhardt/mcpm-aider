@@ -4,6 +4,7 @@ import prompts from 'prompts';
 import { ClaudeHostService } from './services/claude.js';
 import { version } from './utils/version.js';
 import { stringifyServerToTitle } from './utils/display.js';
+import { formatMCPServers } from './utils/formatter.js';
 
 const program = new Command();
 
@@ -241,9 +242,14 @@ program
 program
   .command('list')
   .description('List all your MCP servers')
-  .action(async () => {
+  .option('--json', 'Output in JSON format')
+  .action(async (options: { json?: boolean }) => {
     const servers = await claudeSrv.getAllMCPServersWithStatus();
-    console.log(JSON.stringify(servers, null, 2));
+    if (options.json) {
+      console.log(JSON.stringify(servers, null, 2));
+    } else {
+      console.log(formatMCPServers(servers));
+    }
   });
 
 // listCmd
