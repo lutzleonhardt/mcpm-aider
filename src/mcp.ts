@@ -121,6 +121,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['name'],
         },
       },
+      {
+        name: 'list-servers',
+        description: 'List all MCP servers',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
     ],
   };
 });
@@ -131,6 +140,17 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
 
   try {
     switch (name) {
+      case 'list-servers': {
+        try {
+          const servers = await claudeSrv.getAllMCPServersWithStatus();
+          return {
+            result: JSON.stringify(servers, null, 2),
+          };
+        } catch (error) {
+          throw new Error(`Failed to list servers: ${error}`);
+        }
+      }
+
       case 'add-server': {
         const { name, config } = AddServerArgumentsSchema.parse(args);
         try {
