@@ -86,9 +86,11 @@ mcpm list            # Shows all configured MCP servers
 
 ## Development
 
-Publish A new version
+### Publish A new version
+
+GitHub Actions will automatically publish a new version when a new tag is created
 
 ```bash
-git tag v1.1.2
-git push origin v1.1.2
+git tag v1.4.0
+git push origin v1.4.0
 ```
