@@ -7,6 +7,7 @@ import {
   StorageService,
 } from './storage.js';
 import { logger } from '../utils/logger.js';
+import { restartClaude } from '../utils/cmd.js';
 
 export interface MCPServerBootConfig {
   command: string;
@@ -292,127 +293,7 @@ export class ClaudeHostService {
   }
 
   public async restartClaude(): Promise<void> {
-    const { exec } = await import('child_process');
-    return new Promise((resolve, reject) => {
-      if (process.platform === 'win32') {
-        // Windows commands
-        // First get the path of Claude.exe from running processes
-        exec(
-          'powershell -Command "Get-Process Claude -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Path"',
-          (error, stdout) => {
-            let claudePath = stdout.toString().trim();
-
-            // Get First path
-            claudePath = claudePath.split('\n')[0];
-
-            if (!claudePath && error) {
-              reject(new Error(`Failed to get Claude path: ${error.message}`));
-              return;
-            }
-
-            // If Claude is not running, try to find it in Program Files
-            if (!claudePath) {
-              const defaultPaths = [
-                'C:\\Program Files\\Claude\\Claude.exe',
-                'C:\\Program Files (x86)\\Claude\\Claude.exe',
-                `${process.env.LOCALAPPDATA}\\Programs\\Claude\\Claude.exe`,
-              ];
-
-              // Use Promise.all to check all paths
-              void Promise.all(
-                defaultPaths.map(path =>
-                  import('fs').then(fs =>
-                    fs.promises
-                      .access(path)
-                      .then(() => path)
-                      .catch(() => null)
-                  )
-                )
-              ).then(results => {
-                claudePath = results.find(path => path !== null) || '';
-
-                if (!claudePath) {
-                  reject(
-                    new Error(
-                      'Could not find Claude.exe. Please make sure Claude is installed.'
-                    )
-                  );
-                  return;
-                }
-
-                // Kill Claude process
-                exec('taskkill /F /IM "Claude.exe"', error => {
-                  if (error && error.code !== 128) {
-                    // code 128 means no process found
-                    reject(
-                      new Error(`Failed to kill Claude: ${error.message}`)
-                    );
-                    return;
-                  }
-
-                  // Wait for 2 seconds before starting Claude
-                  setTimeout(() => {
-                    // Start Claude using the full path
-                    exec(`"${claudePath}"`, error => {
-                      if (error) {
-                        reject(
-                          new Error(`Failed to start Claude: ${error.message}`)
-                        );
-                        return;
-                      }
-                    });
-                    // Resolve immediately after starting the process
-                    resolve();
-                  }, 2000);
-                });
-              });
-            } else {
-              // If claudePath was found directly, proceed with killing and restarting
-              exec('taskkill /F /IM "Claude.exe"', error => {
-                if (error && error.code !== 128) {
-                  reject(new Error(`Failed to kill Claude: ${error.message}`));
-                  return;
-                }
-
-                setTimeout(() => {
-                  const claudeProcess = exec(`"${claudePath}"`, error => {
-                    if (error) {
-                      reject(
-                        new Error(`Failed to start Claude: ${error.message}`)
-                      );
-                      return;
-                    }
-                  });
-                  // Resolve immediately after starting the process
-                  resolve();
-                }, 2000);
-              });
-            }
-          }
-        );
-      } else {
-        // macOS commands
-        exec('killall "Claude"', error => {
-          if (error && error.code !== 1) {
-            // code 1 means no process found
-            reject(new Error(`Failed to kill Claude: ${error.message}`));
-            return;
-          }
-
-          // Wait for 2 seconds before starting Claude.app
-          setTimeout(() => {
-            // Start Claude.app
-            exec('open -a Claude', error => {
-              if (error) {
-                reject(new Error(`Failed to start Claude: ${error.message}`));
-                return;
-              }
-              resolve();
-            });
-          }, 2000);
-        });
-      }
-    });
+    await restartClaude();
   }
 
   public async addMCPMSelfMCPServer(): Promise<void> {
