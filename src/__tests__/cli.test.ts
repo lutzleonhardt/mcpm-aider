@@ -34,12 +34,12 @@ describe('ClaudeHostService Tests', () => {
         },
       };
 
-      claudeService.getMCPServers.mockResolvedValue(mockServers);
+      claudeService.getMCPServersInConfig.mockResolvedValue(mockServers);
 
-      const result = await claudeService.getMCPServers();
+      const result = await claudeService.getMCPServersInConfig();
 
       expect(result).toEqual(mockServers);
-      expect(claudeService.getMCPServers).toHaveBeenCalled();
+      expect(claudeService.getMCPServersInConfig).toHaveBeenCalled();
     });
   });
 

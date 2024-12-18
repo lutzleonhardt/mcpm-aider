@@ -1,31 +1,45 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { MCPServer } from './claude.js';
+import { MCPServerBootConfig } from './claude.js';
+
+export enum MCPServerConfigSource {
+  LOCAL = 'local',
+  REMOTE = 'remote',
+}
 
 export interface MCPServerConfig {
+  name: string;
   claudeId?: string;
-  args: MCPServer;
-  enabled?: boolean;
+  appConfig: MCPServerBootConfig;
+  from?: MCPServerConfigSource;
 }
 
 export interface Config {
   lastUpdated?: string;
   apiKey?: string;
-  claudeMcpServers?: {
-    [key: string]: MCPServerConfig;
-  };
 }
+
+export interface MCPServerMap {
+  [key: string]: MCPServerConfig;
+}
+
+export type MCPServerConfigStorage = {
+  mcpServersMap?: MCPServerMap;
+};
 
 export class StorageService {
   private static instance: StorageService;
   private configDir: string;
   private configPath: string;
+  private serversPath: string;
   private config: Config = {};
+  private mcpServersConfig: MCPServerConfigStorage = {};
 
   private constructor() {
     this.configDir = path.join(os.homedir(), '.mcpm');
     this.configPath = path.join(this.configDir, 'config.json');
+    this.serversPath = path.join(this.configDir, 'servers.json');
     this.ensureConfigExists();
     this.loadConfig();
   }
@@ -44,6 +58,9 @@ export class StorageService {
     if (!fs.existsSync(this.configPath)) {
       fs.writeFileSync(this.configPath, JSON.stringify({}, null, 2));
     }
+    if (!fs.existsSync(this.serversPath)) {
+      fs.writeFileSync(this.serversPath, JSON.stringify({}, null, 2));
+    }
   }
 
   private loadConfig(): void {
@@ -61,6 +78,63 @@ export class StorageService {
       fs.writeFileSync(this.configPath, JSON.stringify(this.config, null, 2));
     } catch (error) {
       console.error('Error saving config:', error);
+    }
+  }
+
+  private loadServersStorage(): void {
+    try {
+      const serversContent = fs.readFileSync(this.serversPath, 'utf-8');
+      this.mcpServersConfig = JSON.parse(serversContent);
+    } catch (error) {
+      console.error('Error loading servers storage:', error);
+      this.mcpServersConfig = {};
+    }
+  }
+
+  private saveServersStorage(): void {
+    try {
+      fs.writeFileSync(
+        this.serversPath,
+        JSON.stringify(this.mcpServersConfig, null, 2)
+      );
+    } catch (error) {
+      console.error('Error saving servers storage:', error);
+    }
+  }
+
+  public getMCPServer(name: string): MCPServerConfig | undefined {
+    this.loadServersStorage();
+    return this.mcpServersConfig.mcpServersMap?.[name];
+  }
+
+  public getAllMCPServers(): MCPServerConfig[] {
+    this.loadServersStorage();
+    return Object.values(this.mcpServersConfig.mcpServersMap || {});
+  }
+
+  public addMCPServers(servers: MCPServerConfig[]): void {
+    this.loadServersStorage();
+    this.mcpServersConfig.mcpServersMap = {
+      ...this.mcpServersConfig.mcpServersMap,
+      ...Object.fromEntries(servers.map(server => [server.name, server])),
+    };
+    this.saveServersStorage();
+  }
+
+  public removeMCPServer(name: string): void {
+    this.loadServersStorage();
+    delete this.mcpServersConfig.mcpServersMap?.[name];
+    this.saveServersStorage();
+  }
+
+  public addIfNotExistedMCPServer(server: MCPServerConfig): void {
+    this.loadServersStorage();
+    if (!this.mcpServersConfig.mcpServersMap?.[server.name]) {
+      this.mcpServersConfig.mcpServersMap = {
+        ...(this.mcpServersConfig.mcpServersMap || {}),
+        [server.name]: server,
+      };
+      this.saveServersStorage();
     }
   }
 

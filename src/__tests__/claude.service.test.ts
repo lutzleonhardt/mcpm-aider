@@ -2,7 +2,7 @@
 import {
   ClaudeFileService,
   ClaudeHostService,
-  MCPServer,
+  MCPServerBootConfig,
   ClaudeConfig,
 } from '../services/claude.js';
 
@@ -10,7 +10,7 @@ describe('ClaudeHostService', () => {
   let claudeHostService: ClaudeHostService;
   let mockFileService: jest.Mocked<ClaudeFileService>;
 
-  const mockServer: MCPServer = {
+  const mockServer: MCPServerBootConfig = {
     command: 'test-command',
     args: ['--test'],
   };
@@ -72,7 +72,7 @@ describe('ClaudeHostService', () => {
       };
       mockFileService.getClaudeConfig.mockResolvedValue(mockConfig);
 
-      const result = await claudeHostService.getMCPServers();
+      const result = await claudeHostService.getMCPServersInConfig();
 
       expect(result).toEqual({
         'test-server': mockServer,
@@ -82,7 +82,7 @@ describe('ClaudeHostService', () => {
     it('should return empty object if no servers exist', async () => {
       mockFileService.getClaudeConfig.mockResolvedValue({ mcpServers: {} });
 
-      const result = await claudeHostService.getMCPServers();
+      const result = await claudeHostService.getMCPServersInConfig();
 
       expect(result).toEqual({});
     });

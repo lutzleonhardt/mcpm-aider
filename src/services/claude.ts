@@ -1,19 +1,28 @@
 import path from 'path';
 import os from 'os';
 import { promises as fsp } from 'fs';
-import { StorageService } from './storage.js';
+import {
+  MCPServerConfig,
+  MCPServerConfigSource,
+  StorageService,
+} from './storage.js';
 
-export interface MCPServer {
+export interface MCPServerBootConfig {
   command: string;
   args: string[];
 }
 
 export interface MCPServerMap {
-  [key: string]: MCPServer;
+  [key: string]: MCPServerBootConfig;
 }
 
 export interface ClaudeConfig {
   mcpServers?: MCPServerMap;
+}
+
+export interface MCPServerWithStatus {
+  info: MCPServerConfig;
+  enabled: boolean;
 }
 
 export class ClaudeFileService {
@@ -119,13 +128,14 @@ export class ClaudeFileService {
 
 export class ClaudeHostService {
   constructor(
-    public readonly fileSrv: ClaudeFileService = new ClaudeFileService()
+    public readonly fileSrv: ClaudeFileService = new ClaudeFileService(),
+    private readonly storageSrv: StorageService = StorageService.getInstance()
   ) {}
 
-  private addMCPServerToConfig(
+  private addMCPServerToConfigJSON(
     config: ClaudeConfig,
     name: string,
-    server: MCPServer
+    server: MCPServerBootConfig
   ): ClaudeConfig {
     config.mcpServers = config.mcpServers || {};
     if (config.mcpServers[name]) {
@@ -135,7 +145,7 @@ export class ClaudeHostService {
     return config;
   }
 
-  private removeMCPServerFromConfig(
+  private removeMCPServerFromConfigJSON(
     config: ClaudeConfig,
     serverName: string
   ): ClaudeConfig {
@@ -147,69 +157,136 @@ export class ClaudeHostService {
     return config;
   }
 
-  async addMCPServer(name: string, server: MCPServer): Promise<ClaudeConfig> {
+  async addMCPServer(
+    name: string,
+    server: MCPServerBootConfig
+  ): Promise<ClaudeConfig> {
+    this.storageSrv.addMCPServers([
+      {
+        name,
+        appConfig: server,
+        from: MCPServerConfigSource.LOCAL,
+      },
+    ]);
     return await this.fileSrv.modifyClaudeConfigFile(config =>
-      this.addMCPServerToConfig(config, name, server)
+      this.addMCPServerToConfigJSON(config, name, server)
     );
   }
 
   async removeMCPServer(name: string): Promise<void> {
-    const config = await this.fileSrv.getClaudeConfig();
-    if (!config?.mcpServers?.[name]) {
-      throw new Error(`MCP server '${name}' not found`);
-    }
-    delete config.mcpServers[name];
-    await this.fileSrv.saveClaudeConfig(config);
+    await this.fileSrv.modifyClaudeConfigFile(config =>
+      this.removeMCPServerFromConfigJSON(config, name)
+    );
+    this.storageSrv.removeMCPServer(name);
   }
 
-  async getMCPServers(): Promise<MCPServerMap> {
+  async getMCPServersInConfig(): Promise<MCPServerMap> {
     const config = await this.fileSrv.getClaudeConfig();
     return config?.mcpServers || {};
   }
 
+  async getAllMCPServersWithStatus(): Promise<MCPServerWithStatus[]> {
+    const enabledServers = await this.getMCPServersInConfig();
+    let installedServers = this.storageSrv.getAllMCPServers();
+    // Add new enabled servers (not in storage)
+    const newEnabledServers = Object.entries(enabledServers).reduce(
+      (acc, [name, server]) => {
+        if (!name) {
+          return acc;
+        }
+        const isEnabled =
+          installedServers.some(
+            installedServer => installedServer.claudeId === name
+          ) ||
+          installedServers.some(
+            installedServer => installedServer.name === name
+          );
+        if (!isEnabled) {
+          acc = [
+            ...acc,
+            {
+              name,
+              claudeId: name,
+              appConfig: server,
+              from: MCPServerConfigSource.LOCAL,
+            },
+          ];
+        }
+        return acc;
+      },
+      [] as MCPServerConfig[]
+    );
+    this.storageSrv.addMCPServers(newEnabledServers);
+    installedServers = [...installedServers, ...newEnabledServers];
+    return installedServers.map(server => ({
+      info: server,
+      enabled: !!enabledServers[server.name],
+    }));
+  }
+
   async disableMCPServer(name: string): Promise<void> {
-    const config = await this.fileSrv.getClaudeConfig();
-    if (!config?.mcpServers?.[name]) {
-      throw new Error(`MCP server '${name}' not found`);
-    }
+    await this.fileSrv.modifyClaudeConfigFile(config => {
+      if (!config?.mcpServers?.[name]) {
+        throw new Error(`MCP server '${name}' not found`);
+      }
 
-    const server = config.mcpServers[name];
-    const storage = StorageService.getInstance();
-    const disabledServers = storage.get('claudeMcpServers') || {};
+      const server = config.mcpServers[name];
 
-    disabledServers[name] = {
-      args: server,
-      enabled: false,
-      claudeId: name,
-    };
+      this.storageSrv.addIfNotExistedMCPServer({
+        name,
+        appConfig: server,
+        from: MCPServerConfigSource.LOCAL,
+      });
 
-    storage.set('claudeMcpServers', disabledServers);
-    delete config.mcpServers[name];
-    await this.fileSrv.saveClaudeConfig(config);
+      delete config.mcpServers[name];
+      return config;
+    });
   }
 
   async enableMCPServer(name: string): Promise<void> {
-    const storage = StorageService.getInstance();
-    const disabledServers = storage.get('claudeMcpServers') || {};
+    const storaged = this.storageSrv.getMCPServer(name);
 
-    if (!disabledServers[name]) {
-      throw new Error(`Disabled MCP server '${name}' not found`);
+    if (!storaged) {
+      throw new Error(`MCP server '${name}' not found`);
     }
 
-    const server = disabledServers[name].args;
-    await this.addMCPServer(name, server);
-
-    delete disabledServers[name];
-    storage.set('claudeMcpServers', disabledServers);
+    await this.fileSrv.modifyClaudeConfigFile(config => {
+      if (config?.mcpServers?.[name]) {
+        throw new Error(`MCP server '${name}' already exists`);
+      }
+      config.mcpServers = config.mcpServers || {};
+      config.mcpServers[name] = storaged.appConfig;
+      return config;
+    });
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  async getDisabledMCPServers(): Promise<MCPServerMap> {
-    const storage = StorageService.getInstance();
-    const disabledServers = storage.get('claudeMcpServers') || {};
-    return Object.entries(disabledServers).reduce((acc, [name, config]) => {
-      acc[name] = config.args;
-      return acc;
-    }, {} as MCPServerMap);
+  async getDisabledMCPServers(): Promise<{
+    [key: string]: MCPServerConfig;
+  }> {
+    const servers = await this.getAllMCPServersWithStatus();
+    return servers
+      .filter(server => !server.enabled)
+      .reduce(
+        (acc, server) => ({ ...acc, [server.info.name]: server.info }),
+        {}
+      );
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async getEnabledMCPServers(): Promise<{
+    [key: string]: MCPServerConfig;
+  }> {
+    const servers = await this.getAllMCPServersWithStatus();
+    return servers
+      .filter(server => server.enabled)
+      .reduce(
+        (acc, server) => ({ ...acc, [server.info.name]: server.info }),
+        {}
+      );
+  }
+
+  clearAllData(): void {
+    this.storageSrv.clear();
   }
 }

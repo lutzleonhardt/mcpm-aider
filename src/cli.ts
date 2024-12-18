@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import prompts from 'prompts';
 import { ClaudeHostService } from './services/claude.js';
 import { version } from './utils/version.js';
+import { stringifyServerToTitle } from './utils/display.js';
 
 const program = new Command();
 
@@ -97,9 +98,9 @@ program
 
     // If name not provided, show selection prompt
     if (!name) {
-      const servers = await hostService.getMCPServers();
+      const servers = await hostService.getMCPServersInConfig();
       const choices = Object.entries(servers).map(([name, server]) => ({
-        title: `${name} (${server.command} ${server.args.join(' ')})`,
+        title: `${name} (${server.command} ${server.args?.join(' ') || ''})`,
         value: name,
       }));
 
@@ -144,9 +145,9 @@ program
     const hostService = new ClaudeHostService();
 
     if (!name) {
-      const servers = await hostService.getMCPServers();
-      const choices = Object.entries(servers).map(([name, server]) => ({
-        title: `${name} (${server.command} ${server.args.join(' ')})`,
+      const servers = await hostService.getEnabledMCPServers();
+      const choices = Object.entries(servers).map(([name, info]) => ({
+        title: stringifyServerToTitle(info),
         value: name,
       }));
 
@@ -192,8 +193,8 @@ program
 
     if (!name) {
       const servers = await hostService.getDisabledMCPServers();
-      const choices = Object.entries(servers).map(([name, server]) => ({
-        title: `${name} (${server.command} ${server.args.join(' ')})`,
+      const choices = Object.entries(servers).map(([name, info]) => ({
+        title: stringifyServerToTitle(info),
         value: name,
       }));
 
@@ -230,6 +231,22 @@ program
     }
   });
 
+program
+  .command('list')
+  .description('List all your MCP servers')
+  .action(async () => {
+    const servers = await claudeSrv.getAllMCPServersWithStatus();
+    console.log(JSON.stringify(servers, null, 2));
+  });
+
+// listCmd
+//   .command('remote')
+//   .description('List all your disabled MCP servers')
+//   .action(async () => {
+//     const servers = await claudeSrv.getDisabledMCPServers();
+//     console.log(JSON.stringify(servers, null, 2));
+//   });
+
 const hostCmd = program
   .command('host')
   .description('Manage your MCP hosts like Claude App');
@@ -241,7 +258,7 @@ hostCmd
     console.log('Scanning Claude');
 
     claudeSrv
-      .getMCPServers()
+      .getMCPServersInConfig()
       .then(config => {
         console.log(JSON.stringify(config, null, 2));
       })
@@ -256,6 +273,18 @@ program
   .action(async () => {
     const { startMCPServer } = await import('./mcp.js');
     await startMCPServer();
+  });
+
+const debugCmd = program
+  .command('debug', { hidden: true })
+  .description('Only for Debug');
+
+debugCmd
+  .command('clear')
+  .description('Clear all data')
+  .action(() => {
+    console.log('Clearing all data');
+    claudeSrv.clearAllData();
   });
 
 program.parse(process.argv);
