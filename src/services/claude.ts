@@ -107,7 +107,7 @@ export class ClaudeFileService {
       return path.join(
         home,
         'AppData',
-        'Local',
+        'Roaming', // $env:AppData
         'Claude',
         'claude_desktop_config.json'
       );

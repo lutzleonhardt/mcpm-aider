@@ -1,6 +1,6 @@
 {
   "name": "@mcpm/cli",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Your MCP CLI Manager. Helps you install/remove/search your MCP projects. You can also manage your MCP in Claude App with natural language.",
   "main": "lib/cli.js",
   "types": "lib/cli.d.ts",
@@ -81,6 +81,7 @@
     "eslint": "^7.25.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-jest": "^24.3.6",
+    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.4.0",
     "husky": "^8.0.3",
     "jest": "^27.5.1",
