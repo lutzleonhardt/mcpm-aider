@@ -287,7 +287,32 @@ export class ClaudeHostService {
       );
   }
 
-  clearAllData(): void {
+  public clearAllData(): void {
     this.storageSrv.clear();
+  }
+
+  public async restartClaude(): Promise<void> {
+    const { exec } = await import('child_process');
+    return new Promise((resolve, reject) => {
+      exec('killall "Claude"', error => {
+        if (error && error.code !== 1) {
+          // code 1 means no process found
+          reject(new Error(`Failed to kill Claude: ${error.message}`));
+          return;
+        }
+
+        // Wait for 2 seconds before starting Claude.app
+        setTimeout(() => {
+          // Start Claude.app
+          exec('open -a Claude', error => {
+            if (error) {
+              reject(new Error(`Failed to start Claude: ${error.message}`));
+              return;
+            }
+            resolve();
+          });
+        }, 2000);
+      });
+    });
   }
 }

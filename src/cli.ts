@@ -287,4 +287,17 @@ debugCmd
     claudeSrv.clearAllData();
   });
 
+program
+  .command('restart')
+  .description('Restart Claude.app')
+  .action(async () => {
+    try {
+      console.log('Restarting Claude.app...');
+      await claudeSrv.restartClaude();
+      console.log('Claude.app has been restarted');
+    } catch (error: any) {
+      console.error('Failed to restart Claude.app:', error.message);
+    }
+  });
+
 program.parse(process.argv);

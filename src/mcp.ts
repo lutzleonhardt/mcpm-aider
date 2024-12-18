@@ -130,6 +130,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: [],
         },
       },
+      {
+        name: 'restart-claude',
+        description: 'Restart Claude.app',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
     ],
   };
 });
@@ -196,6 +205,17 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
           };
         } catch (error) {
           throw new Error(`Failed to disable server '${name}': ${error}`);
+        }
+      }
+
+      case 'restart-claude': {
+        try {
+          await claudeSrv.restartClaude();
+          return {
+            result: 'Claude.app has been restarted successfully',
+          };
+        } catch (error) {
+          throw new Error(`Failed to restart Claude.app: ${error}`);
         }
       }
 
