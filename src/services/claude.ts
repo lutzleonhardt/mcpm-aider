@@ -360,8 +360,9 @@ export class ClaudeHostService {
                         );
                         return;
                       }
-                      resolve();
                     });
+                    // Resolve immediately after starting the process
+                    resolve();
                   }, 2000);
                 });
               });
@@ -374,15 +375,16 @@ export class ClaudeHostService {
                 }
 
                 setTimeout(() => {
-                  exec(`"${claudePath}"`, error => {
+                  const claudeProcess = exec(`"${claudePath}"`, error => {
                     if (error) {
                       reject(
                         new Error(`Failed to start Claude: ${error.message}`)
                       );
                       return;
                     }
-                    resolve();
                   });
+                  // Resolve immediately after starting the process
+                  resolve();
                 }, 2000);
               });
             }
