@@ -49,7 +49,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
-        name: 'add-server',
+        name: 'add-mcp-server',
         description: 'Add a new MCP server',
         inputSchema: {
           type: 'object',
@@ -80,7 +80,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: 'remove-server',
+        name: 'remove-mcp-server',
         description: 'Remove an MCP server',
         inputSchema: {
           type: 'object',
@@ -94,7 +94,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: 'enable-server',
+        name: 'enable-mcp-server',
         description: 'Enable a disabled MCP server',
         inputSchema: {
           type: 'object',
@@ -108,7 +108,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: 'disable-server',
+        name: 'disable-mcp-server',
         description: 'Disable an MCP server',
         inputSchema: {
           type: 'object',
@@ -122,7 +122,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: 'list-servers',
+        name: 'list-mcp-servers',
         description: 'List all MCP servers',
         inputSchema: {
           type: 'object',
