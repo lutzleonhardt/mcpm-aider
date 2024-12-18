@@ -298,9 +298,12 @@ export class ClaudeHostService {
         // Windows commands
         // First get the path of Claude.exe from running processes
         exec(
-          'wmic process where "name=\'Claude.exe\'" get ExecutablePath',
+          'powershell -Command "Get-Process Claude -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Path"',
           (error, stdout) => {
-            let claudePath = stdout.toString().trim().split('\n')[1]?.trim();
+            let claudePath = stdout.toString().trim();
+
+            // Get First path
+            claudePath = claudePath.split('\n')[0];
 
             if (!claudePath && error) {
               reject(new Error(`Failed to get Claude path: ${error.message}`));
