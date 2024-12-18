@@ -21,13 +21,7 @@ module.exports = {
       'ts-jest',
       {
         useESM: true,
-        tsconfig: {
-          module: 'ESNext',
-          target: 'es2022',
-          resolveJsonModule: true,
-          moduleResolution: 'node',
-          esModuleInterop: true,
-        },
+        tsconfig: './tsconfig.json'
       },
     ],
     '^.+\\.jsx?$': 'babel-jest'
