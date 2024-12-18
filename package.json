@@ -24,7 +24,8 @@
     "test:watch": "jest --config jest.config.cjs --watch",
     "test": "jest --config jest.config.cjs",
     "typecheck": "tsc --noEmit",
-    "release": "npm run build && npm publish --access public"
+    "release": "npm run build && npm publish --access public",
+    "release:beta": "npm run build && npm publish --tag beta --access public"
   },
   "repository": {
     "type": "git",
