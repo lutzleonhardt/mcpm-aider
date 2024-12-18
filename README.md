@@ -48,8 +48,9 @@ Commands:
   remove [name]         Remove a MCP server from your Claude App
   disable [name]        Disable an MCP server (moves it from Claude to storage)
   enable [name]         Enable a disabled MCP server (moves it from storage to Claude)
-  host                  Manage your MCP hosts like Claude App
+  list [options]        List all your MCP servers
   mcp                   Start the MCPM MCP server
+  restart               Restart Claude.app
   help [command]        display help for command
 
 ```
