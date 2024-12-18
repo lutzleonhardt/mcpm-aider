@@ -20,11 +20,18 @@ program
   .argument('[name]', 'name of the MCP server')
   .option('-c, --command <command>', 'command to run the server')
   .option('-a, --args <args...>', 'arguments for the command')
+  .option('--self', 'add the MCPM CLI as a MCP server')
   .action(
     async (
       name: string | undefined,
-      options: { command?: string; args?: string[] }
+      options: { command?: string; args?: string[]; self?: boolean }
     ) => {
+      if (options.self) {
+        await claudeSrv.addMCPMSelfMCPServer();
+        console.log('MCPM CLI added successfully');
+        return;
+      }
+
       if (!name || !options.command) {
         const questions: prompts.PromptObject<string>[] = [];
 

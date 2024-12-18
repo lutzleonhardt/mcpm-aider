@@ -315,4 +315,23 @@ export class ClaudeHostService {
       });
     });
   }
+
+  public async addMCPMSelfMCPServer(): Promise<void> {
+    const selfConfig: MCPServerConfig = {
+      name: 'mcpm',
+      appConfig: {
+        command: 'mcpm',
+        args: ['mcp'],
+      },
+      from: MCPServerConfigSource.SELF,
+    };
+    this.storageSrv.addMCPServers([selfConfig]);
+    await this.fileSrv.modifyClaudeConfigFile(config =>
+      this.addMCPServerToConfigJSON(
+        config,
+        selfConfig.name,
+        selfConfig.appConfig
+      )
+    );
+  }
 }

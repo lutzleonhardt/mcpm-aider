@@ -6,6 +6,7 @@ import { MCPServerBootConfig } from './claude.js';
 export enum MCPServerConfigSource {
   LOCAL = 'local',
   REMOTE = 'remote',
+  SELF = 'self',
 }
 
 export interface MCPServerConfig {
