@@ -9,6 +9,20 @@
 
 A command-line tool for managing MCP servers in Claude App.
 
+## Highlights
+
+- 🚀 **Easy Server Management**: Add, remove, and manage multiple MCP servers in Claude App with simple commands
+- 🔄 **Server Status Control**: Enable/disable servers and view their status at any time
+- 🛠️ **Interactive CLI**: User-friendly command-line interface with interactive prompts for easy configuration
+- 🔌 **Self-Integration**: Can add MCPM CLI itself as a MCP server with a single command
+- 📝 **JSON Configuration**: Manages servers through Claude's configuration file with proper error handling
+<!-- - 🎯 **Zero Dependencies**: Lightweight and efficient, built to work seamlessly with Claude App -->
+
+## TODO
+
+- [ ] Add Remote MCP Discovery (A MCP Hub)
+- [ ] A GUI for MCPM CLI
+
 ## Installation
 
 ```bash
@@ -17,18 +31,26 @@ npm install -g @mcpm/cli
 
 ## Usage
 
-### Add a new MCP server
-
 ```bash
-mcpm add                    # Interactive mode
-mcpm add <name>            # Specify server name
-```
 
-### Remove an MCP server
+> mcpm help
 
-```bash
-mcpm remove                # Interactive mode
-mcpm remove <name>         # Specify server name
+Usage: mcpm [options] [command]
+
+Options:
+  -V, --version         output the version number
+  -d, --debug           enables verbose logging (default: false)
+  -h, --help            display help for command
+
+Commands:
+  add [options] [name]  Add a new MCP server to your Claude App
+  remove [name]         Remove a MCP server from your Claude App
+  disable [name]        Disable an MCP server (moves it from Claude to storage)
+  enable [name]         Enable a disabled MCP server (moves it from storage to Claude)
+  host                  Manage your MCP hosts like Claude App
+  mcp                   Start the MCPM MCP server
+  help [command]        display help for command
+
 ```
 
 ### Disable an MCP server
@@ -52,13 +74,13 @@ mcpm enable <name>        # Specify server name
 ### List MCP servers
 
 ```bash
-mcpm host scan            # Shows all configured MCP servers
+mcpm list            # Shows all configured MCP servers
 ```
 
 ## Configuration
 
 - Active servers are stored in Claude App's configuration
-- Disabled servers are stored in `~/.mcpm/config.json`
+- Disabled servers are stored in `~/.mcpm/*`
 
 ## Development
 
