@@ -20,7 +20,8 @@ A command-line tool for managing MCP servers in Claude App.
 
 ## TODO
 
-- [ ] Add Remote MCP Discovery (A MCP Hub)
+- [ ] Add Remote MCP Discovery (A MCPHub for search and recommendation)
+- [ ] Auto Install MCP Servers For you
 - [ ] A GUI for MCPM CLI
 
 ## Installation
