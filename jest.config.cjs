@@ -13,6 +13,7 @@ module.exports = {
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
     '^(\\.{1,2}/.*)\\.json$': '$1.json',
+    '#(.*)': '<rootDir>/node_modules/$1'
   },
   extensionsToTreatAsEsm: ['.ts'],
   transform: {
@@ -29,7 +30,10 @@ module.exports = {
         },
       },
     ],
+    '^.+\\.jsx?$': 'babel-jest'
   },
-  transformIgnorePatterns: [],
+  transformIgnorePatterns: [
+    'node_modules/(?!(chalk)/.*)'
+  ],
   setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
 };
