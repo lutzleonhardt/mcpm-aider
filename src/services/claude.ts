@@ -6,6 +6,7 @@ import {
   MCPServerConfigSource,
   StorageService,
 } from './storage.js';
+import { logger } from '../utils/logger.js';
 
 export interface MCPServerBootConfig {
   command: string;
@@ -35,7 +36,7 @@ export class ClaudeFileService {
       const content = await this.fs.readFile(configPath, 'utf8');
       return JSON.parse(content) as ClaudeConfig;
     } catch {
-      console.log('Claude config not found');
+      logger.error('Claude config not found');
       return null;
     }
   }
@@ -58,7 +59,7 @@ export class ClaudeFileService {
       configPath,
       this.stringifyClaudeConfig(defaultConfig)
     );
-    console.log('Claude config created');
+    logger.info('Claude config created');
     return defaultConfig;
   }
 
