@@ -210,6 +210,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
 
       case 'restart-claude': {
         try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
           await claudeSrv.restartClaude();
           return {
             result: 'Claude.app has been restarted successfully',
