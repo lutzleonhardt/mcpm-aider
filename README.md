@@ -79,6 +79,18 @@ mcpm enable <name>        # Specify server name
 mcpm list            # Shows all configured MCP servers
 ```
 
+### Start As A MCP Server
+
+```bash
+mcpm mcp               # Start MCPM as a MCP server
+```
+
+### Add itself as a MCP server to your Claude App
+
+```bash
+mcpm add --self          # Add MCPM CLI as a MCP server
+```
+
 ## Configuration
 
 - Active servers are stored in Claude App's configuration
