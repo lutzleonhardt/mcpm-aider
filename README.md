@@ -91,6 +91,8 @@ mcpm mcp               # Start MCPM as a MCP server
 mcpm add --self          # Add MCPM CLI as a MCP server
 ```
 
+For more information, visit our [MCP.md](./docs/MCP.md).
+
 ## Configuration
 
 - Active servers are stored in Claude App's configuration
