@@ -313,4 +313,6 @@ program
     }
   });
 
+program.command('prepare').description('Prepare Claude.app for MCPM');
+
 program.parse(process.argv);

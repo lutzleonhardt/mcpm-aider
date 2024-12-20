@@ -125,3 +125,20 @@ export async function restartClaude(): Promise<void> {
     throw new Error(`Failed to restart Claude: ${(error as Error).message}`);
   }
 }
+
+export async function installUvOnMacOrLinux(): Promise<void> {
+  // https://docs.astral.sh/uv/configuration/installer/
+  // curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="/custom/path" sh
+  await execAsync(
+    // 'curl -LsSf https://astral.sh/uv/install.sh | env UV_UNMANAGED_INSTALL="~/.mcpm/uv/.local/bin" sh'
+    'curl -LsSf https://astral.sh/uv/install.sh | sh'
+  );
+}
+
+export async function installUvOnWin(): Promise<void> {
+  // Need change the execution policy to Bypass
+  // https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.4#powershell-execution-policies
+  await execAsync(
+    'powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"'
+  );
+}
