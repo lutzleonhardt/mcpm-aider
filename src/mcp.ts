@@ -6,10 +6,12 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { ClaudeHostService } from './services/claude.js';
+import { RegistryService } from './services/registry.js';
 import { version } from './utils/version.js';
 
-// Initialize Claude Host Service
+// Initialize services
 const claudeSrv = new ClaudeHostService();
+const registrySrv = new RegistryService();
 
 // Define Zod schemas for MCP server management
 const MCPServerConfigSchema = z.object({
@@ -28,6 +30,15 @@ const RemoveServerArgumentsSchema = z.object({
 
 const EnableDisableServerArgumentsSchema = z.object({
   name: z.string(),
+});
+
+const SearchPackagesArgumentsSchema = z.object({
+  query: z.string().optional(),
+});
+
+const InstallPackageArgumentsSchema = z.object({
+  name: z.string(),
+  parameters: z.record(z.string()).optional(),
 });
 
 // Create server instance
@@ -49,8 +60,44 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
+        name: 'search-mcp-server',
+        description: 'Search for MCP Server packages in the registry',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: 'Search query (optional)',
+            },
+          },
+          required: ['query'],
+        },
+      },
+      {
+        name: 'install-mcp-server',
+        description:
+          'Install a MCP package from the registry (automated configuration)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Package ID to install',
+            },
+            parameters: {
+              type: 'object',
+              additionalProperties: {
+                type: 'string',
+              },
+              description: 'Package parameters (optional)',
+            },
+          },
+          required: ['name'],
+        },
+      },
+      {
         name: 'add-mcp-server',
-        description: 'Add a new MCP server',
+        description: 'Manually add a new MCP server (for advanced users)',
         inputSchema: {
           type: 'object',
           properties: {
@@ -205,6 +252,54 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
           };
         } catch (error) {
           throw new Error(`Failed to disable server '${name}': ${error}`);
+        }
+      }
+
+      case 'search-packages': {
+        const { query, json } = SearchPackagesArgumentsSchema.parse(args);
+        try {
+          const packages = query
+            ? await registrySrv.searchPackages(query)
+            : await registrySrv.listPackages();
+
+          if (json) {
+            return {
+              result: JSON.stringify(packages, null, 2),
+            };
+          }
+
+          if (packages.length === 0) {
+            return {
+              result: 'No packages found.',
+            };
+          }
+
+          const results = packages.map(pkg => {
+            let result = `${pkg.title} (${pkg.id})\n`;
+            result += `  ${pkg.description}\n`;
+            if (pkg.tags?.length) {
+              result += `  Tags: ${pkg.tags.join(', ')}\n`;
+            }
+            return result;
+          });
+
+          return {
+            result: results.join('\n'),
+          };
+        } catch (error) {
+          throw new Error(`Failed to search packages: ${error}`);
+        }
+      }
+
+      case 'install-package': {
+        const { name, parameters } = InstallPackageArgumentsSchema.parse(args);
+        try {
+          await claudeSrv.installPackage(name, parameters || {});
+          return {
+            result: `Package '${name}' installed successfully`,
+          };
+        } catch (error) {
+          throw new Error(`Failed to install package '${name}': ${error}`);
         }
       }
 
