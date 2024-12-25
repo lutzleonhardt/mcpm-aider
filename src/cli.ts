@@ -77,6 +77,7 @@ program
 
 program
   .command('install')
+  .alias('i')
   .description('Install a MCP package from the registry')
   .argument('<name>', 'Package name to install')
   .option('-y, --yes', 'Skip confirmation')
@@ -231,6 +232,7 @@ program
 
 program
   .command('remove')
+  .alias('rm')
   .description('Remove a MCP server from your Claude App')
   .argument('[name]', 'name of the MCP server to remove')
   .action(async name => {

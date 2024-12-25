@@ -74,10 +74,19 @@ Install a MCP package by its ID:
 
 ```bash
 mcpm install <package-id>     # Install a specific package
+mcpm i <package-id>          # Short alias for install
 mcpm install -y <package-id>  # Install without confirmation
 ```
 
-For more information, visit our [MCP.md](./docs/MCP.md).
+### Remove a MCP server
+
+Remove a MCP server from Claude App:
+
+```bash
+mcpm remove                 # Interactive mode
+mcpm remove <name>          # Remove a specific server
+mcpm rm <name>              # Short alias for remove
+```
 
 ### Disable an MCP server
 
@@ -108,6 +117,8 @@ mcpm list            # Shows all configured MCP servers
 ```bash
 mcpm mcp               # Start MCPM as a MCP server
 ```
+
+For more information, visit our [MCP.md](./docs/MCP.md).
 
 ### Add itself as a MCP server to your Claude App
 
