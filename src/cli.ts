@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 import prompts from 'prompts';
 import { ClaudeHostService } from './services/claude.js';
+import { registrySrv } from './services/registry.js';
 import { version } from './utils/version.js';
 import { stringifyServerToTitle } from './utils/display.js';
 import { formatMCPServers } from './utils/formatter.js';
@@ -255,7 +256,7 @@ program
     async (name: string, options: { yes?: boolean; param?: string[] }) => {
       try {
         // Get package info
-        const packageInfo = await claudeSrv.getPackageInfo(name);
+        const packageInfo = await registrySrv.getPackageInfo(name);
 
         if (!options.yes) {
           console.log(`Package: ${packageInfo.title} (${name})`);
@@ -324,6 +325,52 @@ program
   .action(async () => {
     const { startMCPServer } = await import('./mcp.js');
     await startMCPServer();
+  });
+
+program
+  .command('search')
+  .description('Search for MCP packages')
+  .argument('[query]', 'Search query')
+  .option('--json', 'Output in JSON format')
+  .action(async (query: string | undefined, options: { json?: boolean }) => {
+    try {
+      if (!query) {
+        const response = await prompts({
+          type: 'text',
+          name: 'query',
+          message: 'Enter search query:',
+        });
+
+        if (!response.query) {
+          console.log('\nSearch cancelled');
+          return;
+        }
+
+        query = response.query as string;
+      }
+
+      const packages = await registrySrv.searchPackages(query);
+      if (options.json) {
+        console.log(JSON.stringify(packages, null, 2));
+      } else {
+        if (packages.length === 0) {
+          console.log('No packages found.');
+          return;
+        }
+
+        console.log(`\nSearch results for "${query}":`);
+        for (const pkg of packages) {
+          console.log(`\n${pkg.title} (${pkg.id})`);
+          console.log(`  ${pkg.description}`);
+          if (pkg.tags?.length) {
+            console.log(`  Tags: ${pkg.tags.join(', ')}`);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error:', (error as Error).message);
+      process.exit(1);
+    }
   });
 
 const debugCmd = program

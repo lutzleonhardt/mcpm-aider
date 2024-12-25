@@ -8,6 +8,7 @@ import {
 } from './storage.js';
 import { logger } from '../utils/logger.js';
 import { restartClaude } from '../utils/cmd.js';
+import { registrySrv } from './registry.js';
 
 export interface MCPServerBootConfig {
   command: string;
@@ -126,24 +127,6 @@ export class ClaudeFileService {
       return path.join(home, '.config', 'claude', 'claude_desktop_config.json');
     }
   }
-}
-
-interface PackageInfo {
-  name: string;
-  title: string;
-  description: string;
-  parameters: Record<
-    string,
-    {
-      type: string;
-      required: boolean;
-      description: string;
-    }
-  >;
-  commandInfo: {
-    command: string;
-    args: string[];
-  };
 }
 
 export class ClaudeHostService {
@@ -333,20 +316,11 @@ export class ClaudeHostService {
     );
   }
 
-  async getPackageInfo(name: string): Promise<PackageInfo> {
-    const registryUrl = `https://registry.mcphub.io/registry/${name}`;
-    const response = await fetch(registryUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch package info: ${response.statusText}`);
-    }
-    return (await response.json()) as PackageInfo;
-  }
-
   async installPackage(
     name: string,
     paramValues: Record<string, string>
   ): Promise<void> {
-    const packageInfo = await this.getPackageInfo(name);
+    const packageInfo = await registrySrv.getPackageInfo(name);
 
     // Validate parameters
     for (const [key] of Object.entries(paramValues)) {
