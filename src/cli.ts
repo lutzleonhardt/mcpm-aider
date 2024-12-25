@@ -1,3 +1,4 @@
+/* eslint-disable no-process-exit */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Command } from 'commander';
 import prompts from 'prompts';
@@ -252,13 +253,120 @@ program
     }
   });
 
-// listCmd
-//   .command('remote')
-//   .description('List all your disabled MCP servers')
-//   .action(async () => {
-//     const servers = await claudeSrv.getDisabledMCPServers();
-//     console.log(JSON.stringify(servers, null, 2));
-//   });
+program
+  .command('install')
+  .description('Install a MCP package')
+  .argument('<name>', 'Package name to install')
+  .option('-y, --yes', 'Skip confirmation')
+  .option('-p, --param <param...>', 'Parameters in format KEY=VALUE')
+  .action(
+    async (name: string, options: { yes?: boolean; param?: string[] }) => {
+      try {
+        // Fetch package info from registry
+        const registryUrl = `https://registry.mcphub.io/registry/${name}`;
+        const response = await fetch(registryUrl);
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch package info: ${response.statusText}`
+          );
+        }
+        const packageInfo = (await response.json()) as {
+          name: string;
+          title: string;
+          description: string;
+          parameters: Record<
+            string,
+            {
+              type: string;
+              required: boolean;
+              description: string;
+            }
+          >;
+          commandInfo: {
+            command: string;
+            args: string[];
+          };
+        };
+
+        if (!options.yes) {
+          console.log(`Package: ${packageInfo.title} (${name})`);
+          console.log(`Description: ${packageInfo.description}`);
+
+          const { confirmed } = await prompts({
+            type: 'confirm',
+            name: 'confirmed',
+            message: 'Do you want to install this package?',
+            initial: true,
+          });
+
+          if (!confirmed) {
+            console.log('Installation cancelled');
+            return;
+          }
+        }
+
+        // Handle parameters
+        const paramValues: Record<string, string> = {};
+
+        // Parse command line parameters first
+        if (options.param) {
+          for (const param of options.param) {
+            const [key, value] = param.split('=');
+            if (!key || !value) {
+              throw new Error(
+                `Invalid parameter format: ${param}. Use KEY=VALUE format`
+              );
+            }
+            if (!packageInfo.parameters[key]) {
+              throw new Error(`Unknown parameter: ${key}`);
+            }
+            paramValues[key] = value;
+          }
+        }
+
+        // Check which parameters are still needed
+        const missingParams = Object.entries(packageInfo.parameters).filter(
+          ([key, info]) => info.required && !paramValues[key]
+        );
+
+        if (missingParams.length > 0) {
+          const paramQuestions = missingParams.map(
+            ([paramName, paramInfo]): prompts.PromptObject => ({
+              type: 'text' as const,
+              name: paramName,
+              message: `Please enter ${paramName} (${paramInfo.description}):`,
+              validate: (value: string) =>
+                paramInfo.required && !value ? 'This field is required' : true,
+            })
+          );
+
+          const paramAnswers = await prompts(paramQuestions);
+          Object.assign(paramValues, paramAnswers);
+        }
+
+        // Process commandInfo args, replacing parameters with their values
+        const processedArgs = packageInfo.commandInfo.args.map(arg => {
+          if (arg.startsWith('**') && arg.endsWith('**')) {
+            const paramName = arg.slice(2, -2); // Remove ** from both ends
+            return paramValues[paramName] || arg;
+          }
+          return arg;
+        });
+
+        // Add MCP server using ClaudeHostService
+        const hostService = new ClaudeHostService();
+        await hostService.addMCPServer(name, {
+          command: packageInfo.commandInfo.command,
+          args: processedArgs,
+        });
+
+        console.log(`Package '${name}' installed successfully!`);
+      } catch (error) {
+        console.error('Error:', (error as Error).message);
+        process.exit(1);
+      }
+    }
+  );
 
 const hostCmd = program
   .command('host')
