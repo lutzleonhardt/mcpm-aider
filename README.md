@@ -16,12 +16,13 @@ A command-line tool for managing MCP servers in Claude App.
 - 🛠️ **Interactive CLI**: User-friendly command-line interface with interactive prompts for easy configuration
 - 🔌 **Self-Integration**: Can add MCPM CLI itself as a MCP server with a single command
 - 📝 **JSON Configuration**: Manages servers through Claude's configuration file with proper error handling
+- 🔍 **Package Discovery**: Search and discover MCP packages from the community
 <!-- - 🎯 **Zero Dependencies**: Lightweight and efficient, built to work seamlessly with Claude App -->
 
 ## TODO
 
-- [ ] Add Remote MCP Discovery (A MCPHub for search and recommendation)
-- [ ] Auto Install MCP Servers For you
+- [x] Add Remote MCP Discovery (A MCPHub for search and recommendation)
+- [x] Auto Install MCP Servers For you
 - [ ] A GUI for MCPM CLI
 
 ## Installation
@@ -44,7 +45,9 @@ Options:
   -h, --help            display help for command
 
 Commands:
-  add [options] [name]  Add a new MCP server to your Claude App
+  search [query]        Search for MCP packages
+  install <n>           Install a MCP package from the registry
+  add [options] [name]  Manually add a new MCP server to your Claude App
   remove [name]         Remove a MCP server from your Claude App
   disable [name]        Disable an MCP server (moves it from Claude to storage)
   enable [name]         Enable a disabled MCP server (moves it from storage to Claude)
@@ -54,6 +57,27 @@ Commands:
   help [command]        display help for command
 
 ```
+
+### Search for MCP packages
+
+Search for available MCP packages in the registry:
+
+```bash
+mcpm search              # Interactive search mode
+mcpm search <query>      # Search with a specific query
+mcpm search --json       # Output results in JSON format
+```
+
+### Install a MCP package
+
+Install a MCP package by its ID:
+
+```bash
+mcpm install <package-id>     # Install a specific package
+mcpm install -y <package-id>  # Install without confirmation
+```
+
+For more information, visit our [MCP.md](./docs/MCP.md).
 
 ### Disable an MCP server
 
@@ -90,8 +114,6 @@ mcpm mcp               # Start MCPM as a MCP server
 ```bash
 mcpm add --self          # Add MCPM CLI as a MCP server
 ```
-
-For more information, visit our [MCP.md](./docs/MCP.md).
 
 ## Configuration
 

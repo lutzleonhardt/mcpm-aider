@@ -18,8 +18,139 @@ program
   .option('-d, --debug', 'enables verbose logging', false);
 
 program
+  .command('search')
+  .description('Search for MCP packages')
+  .argument('[query]', 'Search query')
+  .option('--json', 'Output in JSON format')
+  .action(async (query: string | undefined, options: { json?: boolean }) => {
+    try {
+      if (!query) {
+        const response = await prompts({
+          type: 'text',
+          name: 'query',
+          message: 'Enter search query:',
+        });
+
+        if (!response.query) {
+          console.log('\nSearch cancelled');
+          return;
+        }
+
+        query = response.query as string;
+      }
+
+      const packages = await registrySrv.searchPackages(query);
+      if (options.json) {
+        console.log(JSON.stringify(packages, null, 2));
+      } else {
+        if (packages.length === 0) {
+          console.log('\n📦 No packages found matching your query.');
+          return;
+        }
+
+        console.log(
+          `\n📦 Found ${packages.length} package${
+            packages.length > 1 ? 's' : ''
+          } matching "${query}"\n`
+        );
+
+        for (const pkg of packages) {
+          console.log(`\x1b[1m${pkg.title}\x1b[0m (\x1b[36m${pkg.id}\x1b[0m)`);
+          console.log(`  ${pkg.description}`);
+          if (pkg.tags?.length) {
+            console.log(
+              `  \x1b[33m${pkg.tags.map(tag => `#${tag}`).join(' ')}\x1b[0m`
+            );
+          }
+          console.log(''); // Add empty line between packages
+        }
+
+        console.log(
+          '💡 Tip: Use \x1b[36mmcpm install <package-id>\x1b[0m to install a package\n'
+        );
+      }
+    } catch (error) {
+      console.error('Error:', (error as Error).message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('install')
+  .description('Install a MCP package from the registry')
+  .argument('<name>', 'Package name to install')
+  .option('-y, --yes', 'Skip confirmation')
+  .option('-p, --param <param...>', 'Parameters in format KEY=VALUE')
+  .action(
+    async (name: string, options: { yes?: boolean; param?: string[] }) => {
+      try {
+        // Get package info
+        const packageInfo = await registrySrv.getPackageInfo(name);
+
+        if (!options.yes) {
+          console.log(`Package: ${packageInfo.title} (${name})`);
+          console.log(`Description: ${packageInfo.description}`);
+
+          const { confirmed } = await prompts({
+            type: 'confirm',
+            name: 'confirmed',
+            message: 'Do you want to install this package?',
+            initial: true,
+          });
+
+          if (!confirmed) {
+            console.log('Installation cancelled');
+            return;
+          }
+        }
+
+        // Parse command line parameters
+        const paramValues: Record<string, string> = {};
+        if (options.param) {
+          for (const param of options.param) {
+            const [key, value] = param.split('=');
+            if (!key || !value) {
+              throw new Error(
+                `Invalid parameter format: ${param}. Use KEY=VALUE format`
+              );
+            }
+            paramValues[key] = value;
+          }
+        }
+
+        // Get missing parameters interactively
+        const missingParams = Object.entries(packageInfo.parameters).filter(
+          ([key, info]) => info.required && !paramValues[key]
+        );
+
+        if (missingParams.length > 0) {
+          const paramQuestions = missingParams.map(
+            ([paramName, paramInfo]): prompts.PromptObject => ({
+              type: 'text' as const,
+              name: paramName,
+              message: `Please enter ${paramName} (${paramInfo.description}):`,
+              validate: (value: string) =>
+                paramInfo.required && !value ? 'This field is required' : true,
+            })
+          );
+
+          const paramAnswers = await prompts(paramQuestions);
+          Object.assign(paramValues, paramAnswers);
+        }
+
+        // Install package
+        await claudeSrv.installPackage(name, paramValues);
+        console.log(`Package '${name}' installed successfully!`);
+      } catch (error) {
+        console.error('Error:', (error as Error).message);
+        process.exit(1);
+      }
+    }
+  );
+
+program
   .command('add')
-  .description('Add a new MCP server to your Claude App')
+  .description('Manually add a new MCP server to your Claude App')
   .argument('[name]', 'name of the MCP server')
   .option('-c, --command <command>', 'command to run the server')
   .option('-a, --args <args...>', 'arguments for the command')
@@ -140,6 +271,7 @@ program
       console.log(`MCP server '${name}' removed successfully`);
     } catch (error) {
       console.error(`Failed to remove server '${name}':`, error);
+      process.exit(1);
     }
   });
 
@@ -185,6 +317,7 @@ program
       console.log(`MCP server '${name}' disabled successfully`);
     } catch (error) {
       console.error(`Failed to disable server '${name}':`, error);
+      process.exit(1);
     }
   });
 
@@ -230,6 +363,7 @@ program
       console.log(`MCP server '${name}' enabled successfully`);
     } catch (error) {
       console.error(`Failed to enable server '${name}':`, error);
+      process.exit(1);
     }
   });
 
@@ -247,130 +381,11 @@ program
   });
 
 program
-  .command('install')
-  .description('Install a MCP package')
-  .argument('<name>', 'Package name to install')
-  .option('-y, --yes', 'Skip confirmation')
-  .option('-p, --param <param...>', 'Parameters in format KEY=VALUE')
-  .action(
-    async (name: string, options: { yes?: boolean; param?: string[] }) => {
-      try {
-        // Get package info
-        const packageInfo = await registrySrv.getPackageInfo(name);
-
-        if (!options.yes) {
-          console.log(`Package: ${packageInfo.title} (${name})`);
-          console.log(`Description: ${packageInfo.description}`);
-
-          const { confirmed } = await prompts({
-            type: 'confirm',
-            name: 'confirmed',
-            message: 'Do you want to install this package?',
-            initial: true,
-          });
-
-          if (!confirmed) {
-            console.log('Installation cancelled');
-            return;
-          }
-        }
-
-        // Parse command line parameters
-        const paramValues: Record<string, string> = {};
-        if (options.param) {
-          for (const param of options.param) {
-            const [key, value] = param.split('=');
-            if (!key || !value) {
-              throw new Error(
-                `Invalid parameter format: ${param}. Use KEY=VALUE format`
-              );
-            }
-            paramValues[key] = value;
-          }
-        }
-
-        // Get missing parameters interactively
-        const missingParams = Object.entries(packageInfo.parameters).filter(
-          ([key, info]) => info.required && !paramValues[key]
-        );
-
-        if (missingParams.length > 0) {
-          const paramQuestions = missingParams.map(
-            ([paramName, paramInfo]): prompts.PromptObject => ({
-              type: 'text' as const,
-              name: paramName,
-              message: `Please enter ${paramName} (${paramInfo.description}):`,
-              validate: (value: string) =>
-                paramInfo.required && !value ? 'This field is required' : true,
-            })
-          );
-
-          const paramAnswers = await prompts(paramQuestions);
-          Object.assign(paramValues, paramAnswers);
-        }
-
-        // Install package
-        await claudeSrv.installPackage(name, paramValues);
-        console.log(`Package '${name}' installed successfully!`);
-      } catch (error) {
-        console.error('Error:', (error as Error).message);
-        process.exit(1);
-      }
-    }
-  );
-
-program
   .command('mcp')
   .description('Start the MCPM MCP server')
   .action(async () => {
     const { startMCPServer } = await import('./mcp.js');
     await startMCPServer();
-  });
-
-program
-  .command('search')
-  .description('Search for MCP packages')
-  .argument('[query]', 'Search query')
-  .option('--json', 'Output in JSON format')
-  .action(async (query: string | undefined, options: { json?: boolean }) => {
-    try {
-      if (!query) {
-        const response = await prompts({
-          type: 'text',
-          name: 'query',
-          message: 'Enter search query:',
-        });
-
-        if (!response.query) {
-          console.log('\nSearch cancelled');
-          return;
-        }
-
-        query = response.query as string;
-      }
-
-      const packages = await registrySrv.searchPackages(query);
-      if (options.json) {
-        console.log(JSON.stringify(packages, null, 2));
-      } else {
-        if (packages.length === 0) {
-          console.log('No packages found.');
-          return;
-        }
-
-        console.log(`\nSearch results for "${query}":`);
-        for (const pkg of packages) {
-          console.log(`\n${pkg.title} (${pkg.id})`);
-          console.log(`  ${pkg.description}`);
-          if (pkg.tags?.length) {
-            console.log(`  Tags: ${pkg.tags.join(', ')}`);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error:', (error as Error).message);
-      process.exit(1);
-    }
   });
 
 const debugCmd = program
@@ -395,6 +410,7 @@ program
       console.log('Claude.app has been restarted');
     } catch (error: any) {
       console.error('Failed to restart Claude.app:', error.message);
+      process.exit(1);
     }
   });
 

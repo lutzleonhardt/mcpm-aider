@@ -162,13 +162,14 @@ export class ClaudeHostService {
 
   async addMCPServer(
     name: string,
-    server: MCPServerBootConfig
+    server: MCPServerBootConfig,
+    source: MCPServerConfigSource = MCPServerConfigSource.LOCAL
   ): Promise<ClaudeConfig> {
     this.storageSrv.addMCPServers([
       {
         name,
         appConfig: server,
-        from: MCPServerConfigSource.LOCAL,
+        from: source,
       },
     ]);
     return await this.fileSrv.modifyClaudeConfigFile(config =>
@@ -350,9 +351,13 @@ export class ClaudeHostService {
     });
 
     // Add MCP server
-    await this.addMCPServer(name, {
-      command: packageInfo.commandInfo.command,
-      args: processedArgs,
-    });
+    await this.addMCPServer(
+      name,
+      {
+        command: packageInfo.commandInfo.command,
+        args: processedArgs,
+      },
+      MCPServerConfigSource.REMOTE
+    );
   }
 }
