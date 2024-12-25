@@ -89,8 +89,7 @@ program
         return;
       }
 
-      const hostService = new ClaudeHostService();
-      await hostService.addMCPServer(name, {
+      await claudeSrv.addMCPServer(name, {
         command: options.command,
         args: options.args || [],
       });
@@ -103,11 +102,8 @@ program
   .description('Remove a MCP server from your Claude App')
   .argument('[name]', 'name of the MCP server to remove')
   .action(async name => {
-    const hostService = new ClaudeHostService();
-
-    // If name not provided, show selection prompt
     if (!name) {
-      const servers = await hostService.getMCPServersInConfig();
+      const servers = await claudeSrv.getMCPServersInConfig();
       const choices = Object.entries(servers).map(([name, server]) => ({
         title: `${name} (${server.command} ${server.args?.join(' ') || ''})`,
         value: name,
@@ -139,7 +135,7 @@ program
     }
 
     try {
-      await hostService.removeMCPServer(name);
+      await claudeSrv.removeMCPServer(name);
       console.log(`MCP server '${name}' removed successfully`);
     } catch (error) {
       console.error(`Failed to remove server '${name}':`, error);
@@ -151,10 +147,8 @@ program
   .description('Disable an MCP server (moves it from Claude to storage)')
   .argument('[name]', 'name of the MCP server to disable')
   .action(async name => {
-    const hostService = new ClaudeHostService();
-
     if (!name) {
-      const servers = await hostService.getEnabledMCPServers();
+      const servers = await claudeSrv.getEnabledMCPServers();
       const choices = Object.entries(servers).map(([name, info]) => ({
         title: stringifyServerToTitle(info),
         value: name,
@@ -186,7 +180,7 @@ program
     }
 
     try {
-      await hostService.disableMCPServer(name);
+      await claudeSrv.disableMCPServer(name);
       console.log(`MCP server '${name}' disabled successfully`);
     } catch (error) {
       console.error(`Failed to disable server '${name}':`, error);
@@ -198,10 +192,8 @@ program
   .description('Enable a disabled MCP server (moves it from storage to Claude)')
   .argument('[name]', 'name of the MCP server to enable')
   .action(async name => {
-    const hostService = new ClaudeHostService();
-
     if (!name) {
-      const servers = await hostService.getDisabledMCPServers();
+      const servers = await claudeSrv.getDisabledMCPServers();
       const choices = Object.entries(servers).map(([name, info]) => ({
         title: stringifyServerToTitle(info),
         value: name,
@@ -233,7 +225,7 @@ program
     }
 
     try {
-      await hostService.enableMCPServer(name);
+      await claudeSrv.enableMCPServer(name);
       console.log(`MCP server '${name}' enabled successfully`);
     } catch (error) {
       console.error(`Failed to enable server '${name}':`, error);
@@ -262,31 +254,8 @@ program
   .action(
     async (name: string, options: { yes?: boolean; param?: string[] }) => {
       try {
-        // Fetch package info from registry
-        const registryUrl = `https://registry.mcphub.io/registry/${name}`;
-        const response = await fetch(registryUrl);
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch package info: ${response.statusText}`
-          );
-        }
-        const packageInfo = (await response.json()) as {
-          name: string;
-          title: string;
-          description: string;
-          parameters: Record<
-            string,
-            {
-              type: string;
-              required: boolean;
-              description: string;
-            }
-          >;
-          commandInfo: {
-            command: string;
-            args: string[];
-          };
-        };
+        // Get package info
+        const packageInfo = await claudeSrv.getPackageInfo(name);
 
         if (!options.yes) {
           console.log(`Package: ${packageInfo.title} (${name})`);
@@ -305,10 +274,8 @@ program
           }
         }
 
-        // Handle parameters
+        // Parse command line parameters
         const paramValues: Record<string, string> = {};
-
-        // Parse command line parameters first
         if (options.param) {
           for (const param of options.param) {
             const [key, value] = param.split('=');
@@ -317,14 +284,11 @@ program
                 `Invalid parameter format: ${param}. Use KEY=VALUE format`
               );
             }
-            if (!packageInfo.parameters[key]) {
-              throw new Error(`Unknown parameter: ${key}`);
-            }
             paramValues[key] = value;
           }
         }
 
-        // Check which parameters are still needed
+        // Get missing parameters interactively
         const missingParams = Object.entries(packageInfo.parameters).filter(
           ([key, info]) => info.required && !paramValues[key]
         );
@@ -344,22 +308,8 @@ program
           Object.assign(paramValues, paramAnswers);
         }
 
-        // Process commandInfo args, replacing parameters with their values
-        const processedArgs = packageInfo.commandInfo.args.map(arg => {
-          if (arg.startsWith('**') && arg.endsWith('**')) {
-            const paramName = arg.slice(2, -2); // Remove ** from both ends
-            return paramValues[paramName] || arg;
-          }
-          return arg;
-        });
-
-        // Add MCP server using ClaudeHostService
-        const hostService = new ClaudeHostService();
-        await hostService.addMCPServer(name, {
-          command: packageInfo.commandInfo.command,
-          args: processedArgs,
-        });
-
+        // Install package
+        await claudeSrv.installPackage(name, paramValues);
         console.log(`Package '${name}' installed successfully!`);
       } catch (error) {
         console.error('Error:', (error as Error).message);
@@ -367,26 +317,6 @@ program
       }
     }
   );
-
-const hostCmd = program
-  .command('host')
-  .description('Manage your MCP hosts like Claude App');
-
-hostCmd
-  .command('scan')
-  .description('Scan for supported hosts')
-  .action(() => {
-    console.log('Scanning Claude');
-
-    claudeSrv
-      .getMCPServersInConfig()
-      .then(config => {
-        console.log(JSON.stringify(config, null, 2));
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  });
 
 program
   .command('mcp')

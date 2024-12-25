@@ -128,6 +128,24 @@ export class ClaudeFileService {
   }
 }
 
+interface PackageInfo {
+  name: string;
+  title: string;
+  description: string;
+  parameters: Record<
+    string,
+    {
+      type: string;
+      required: boolean;
+      description: string;
+    }
+  >;
+  commandInfo: {
+    command: string;
+    args: string[];
+  };
+}
+
 export class ClaudeHostService {
   constructor(
     public readonly fileSrv: ClaudeFileService = new ClaudeFileService(),
@@ -313,5 +331,54 @@ export class ClaudeHostService {
         selfConfig.appConfig
       )
     );
+  }
+
+  async getPackageInfo(name: string): Promise<PackageInfo> {
+    const registryUrl = `https://registry.mcphub.io/registry/${name}`;
+    const response = await fetch(registryUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch package info: ${response.statusText}`);
+    }
+    return (await response.json()) as PackageInfo;
+  }
+
+  async installPackage(
+    name: string,
+    paramValues: Record<string, string>
+  ): Promise<void> {
+    const packageInfo = await this.getPackageInfo(name);
+
+    // Validate parameters
+    for (const [key] of Object.entries(paramValues)) {
+      if (!packageInfo.parameters[key]) {
+        throw new Error(`Unknown parameter: ${key}`);
+      }
+    }
+
+    // Check required parameters
+    const missingParams = Object.entries(packageInfo.parameters)
+      .filter(([key, info]) => info.required && !paramValues[key])
+      .map(([key]) => key);
+
+    if (missingParams.length > 0) {
+      throw new Error(
+        `Missing required parameters: ${missingParams.join(', ')}`
+      );
+    }
+
+    // Process commandInfo args, replacing parameters with their values
+    const processedArgs = packageInfo.commandInfo.args.map(arg => {
+      if (arg.startsWith('**') && arg.endsWith('**')) {
+        const paramName = arg.slice(2, -2); // Remove ** from both ends
+        return paramValues[paramName] || arg;
+      }
+      return arg;
+    });
+
+    // Add MCP server
+    await this.addMCPServer(name, {
+      command: packageInfo.commandInfo.command,
+      args: processedArgs,
+    });
   }
 }
