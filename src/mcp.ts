@@ -196,7 +196,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
 
   try {
     switch (name) {
-      case 'list-servers': {
+      case 'list-mcp-servers': {
         try {
           const servers = await claudeSrv.getAllMCPServersWithStatus();
           return {
@@ -207,7 +207,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         }
       }
 
-      case 'add-server': {
+      case 'add-mcp-server': {
         const { name, config } = AddServerArgumentsSchema.parse(args);
         try {
           await claudeSrv.addMCPServer(name, config);
@@ -219,7 +219,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         }
       }
 
-      case 'remove-server': {
+      case 'remove-mcp-server': {
         const { name } = RemoveServerArgumentsSchema.parse(args);
         try {
           await claudeSrv.removeMCPServer(name);
@@ -231,7 +231,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         }
       }
 
-      case 'enable-server': {
+      case 'enable-mcp-server': {
         const { name } = EnableDisableServerArgumentsSchema.parse(args);
         try {
           await claudeSrv.enableMCPServer(name);
@@ -243,7 +243,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         }
       }
 
-      case 'disable-server': {
+      case 'disable-mcp-server': {
         const { name } = EnableDisableServerArgumentsSchema.parse(args);
         try {
           await claudeSrv.disableMCPServer(name);
@@ -255,18 +255,12 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         }
       }
 
-      case 'search-packages': {
-        const { query, json } = SearchPackagesArgumentsSchema.parse(args);
+      case 'search-mcp-server': {
+        const { query } = SearchPackagesArgumentsSchema.parse(args);
         try {
           const packages = query
             ? await registrySrv.searchPackages(query)
             : await registrySrv.listPackages();
-
-          if (json) {
-            return {
-              result: JSON.stringify(packages, null, 2),
-            };
-          }
 
           if (packages.length === 0) {
             return {
@@ -291,7 +285,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         }
       }
 
-      case 'install-package': {
+      case 'install-mcp-server': {
         const { name, parameters } = InstallPackageArgumentsSchema.parse(args);
         try {
           await claudeSrv.installPackage(name, parameters || {});
