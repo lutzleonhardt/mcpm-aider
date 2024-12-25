@@ -178,10 +178,28 @@ export class ClaudeHostService {
   }
 
   async removeMCPServer(name: string): Promise<void> {
-    await this.fileSrv.modifyClaudeConfigFile(config =>
-      this.removeMCPServerFromConfigJSON(config, name)
-    );
+    // Check if server exists in storage
+    const server = this.storageSrv.getMCPServer(name);
+    if (!server) {
+      throw new Error(`Server ${name} not found`);
+    }
+
+    // Remove from storage
     this.storageSrv.removeMCPServer(name);
+
+    // Try to remove from Claude config if it exists (for enabled servers)
+    try {
+      await this.fileSrv.modifyClaudeConfigFile(config => {
+        if (config.mcpServers?.[name]) {
+          delete config.mcpServers[name];
+        }
+        return config;
+      });
+    } catch (error) {
+      // If error occurs while removing from Claude config,
+      // we still consider it successful since it's removed from storage
+      logger.debug(`Failed to remove from Claude config: ${error}`);
+    }
   }
 
   async getMCPServersInConfig(): Promise<MCPServerMap> {
