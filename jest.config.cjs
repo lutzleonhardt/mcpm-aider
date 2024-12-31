@@ -11,23 +11,14 @@ module.exports = {
   ],
   collectCoverage: true,
   moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
-    '^(\\.{1,2}/.*)\\.json$': '$1.json',
     '#(.*)': '<rootDir>/node_modules/$1'
   },
   extensionsToTreatAsEsm: ['.ts'],
   transform: {
-    '^.+\\.tsx?$': [
-      'ts-jest',
-      {
-        useESM: true,
-        tsconfig: './tsconfig.json'
-      },
-    ],
-    '^.+\\.jsx?$': 'babel-jest'
+    '^.+\\.(t|j)sx?$': '@swc/jest',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(chalk)/.*)'
+    'node_modules/(?!chalk|@mcpm/sdk|.*)'
   ],
   setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
 };

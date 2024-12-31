@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { ClaudeHostService } from '@mcpm/sdk';
 
-jest.mock('@mcpm/sdk');
+jest.mock('@mcpm/sdk', () => ({
+  ClaudeHostService: jest.fn().mockImplementation(() => ({
+    addMCPServer: jest.fn(),
+    getMCPServersInConfig: jest.fn(),
+    removeMCPServer: jest.fn(),
+  })),
+}));
 
 describe('ClaudeHostService Tests', () => {
   let claudeService: jest.Mocked<ClaudeHostService>;

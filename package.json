@@ -72,6 +72,7 @@
     "@babel/preset-env": "^7.23.7",
     "@commitlint/cli": "^17.4.4",
     "@commitlint/config-conventional": "^17.4.4",
+    "@swc/jest": "^0.2.37",
     "@types/jest": "^27.5.2",
     "@types/node": "^20.10.5",
     "@types/prompts": "^2.4.9",
