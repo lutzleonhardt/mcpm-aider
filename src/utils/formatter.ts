@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { MCPServerWithStatus } from '../services/claude.js';
+import type { MCPServerWithStatus } from '@mcpm/sdk';
 
 export function formatMCPServers(servers: MCPServerWithStatus[]): string {
   if (servers.length === 0) {

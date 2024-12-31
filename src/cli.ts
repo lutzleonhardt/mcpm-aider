@@ -2,15 +2,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Command } from 'commander';
 import prompts from 'prompts';
-import { ClaudeHostService } from './services/claude.js';
-import { registrySrv } from './services/registry.js';
+import {
+  ClaudeHostService,
+  RegistryService,
+  startMCPServer,
+  stringifyServerToTitle,
+} from '@mcpm/sdk';
 import { version } from './utils/version.js';
-import { stringifyServerToTitle } from './utils/display.js';
 import { formatMCPServers } from './utils/formatter.js';
 
 const program = new Command();
 
 const claudeSrv = new ClaudeHostService();
+const registrySrv = new RegistryService();
 
 program
   .version(version)
@@ -386,8 +390,12 @@ program
   .command('mcp')
   .description('Start the MCPM MCP server')
   .action(async () => {
-    const { startMCPServer } = await import('./mcp.js');
-    await startMCPServer();
+    try {
+      await startMCPServer();
+    } catch (error) {
+      console.error('Error starting MCP server:', (error as Error).message);
+      process.exit(1);
+    }
   });
 
 const debugCmd = program
