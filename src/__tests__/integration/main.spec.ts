@@ -1,4 +1,4 @@
-import execa from 'execa';
+import { execa } from 'execa';
 import { resolve } from 'path';
 
 const bin = resolve(__dirname, './bin.js');
