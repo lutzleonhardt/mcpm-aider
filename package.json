@@ -1,6 +1,6 @@
 {
   "name": "@mcpm/cli",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Your MCP CLI Manager. Helps you install/remove/search your MCP projects. You can also manage your MCP in Claude App with natural language.",
   "main": "lib/cli.js",
   "types": "lib/cli.d.ts",
