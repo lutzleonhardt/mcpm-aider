@@ -19,7 +19,7 @@ A command-line tool for managing MCP servers in Claude App.
 - 🔍 **Package Discovery**: Search and discover MCP packages from the community
 <!-- - 🎯 **Zero Dependencies**: Lightweight and efficient, built to work seamlessly with Claude App -->
 
-## TODO
+## RoadMap
 
 - [x] Add Remote MCP Discovery (A MCPHub for search and recommendation)
 - [x] Auto Install MCP Servers For you

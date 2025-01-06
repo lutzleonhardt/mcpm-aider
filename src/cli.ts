@@ -3,7 +3,9 @@
 import { Command } from 'commander';
 import prompts from 'prompts';
 import {
-  ClaudeHostService,
+  HostService,
+  HostType,
+  MCPServerConfigSource,
   RegistryService,
   startMCPServer,
   stringifyServerToTitle,
@@ -13,7 +15,7 @@ import { formatMCPServers } from './utils/formatter.js';
 
 const program = new Command();
 
-const claudeSrv = new ClaudeHostService();
+const claudeSrv = HostService.getInstanceByType(HostType.CLAUDE);
 const registrySrv = new RegistryService();
 
 program
@@ -411,12 +413,122 @@ debugCmd
   });
 
 program
+  .command('update-params')
+  .description('Update MCP server parameters')
+  .argument('<name>', 'Server name')
+  .action(async (name: string) => {
+    try {
+      // Get current server info
+      const server = await claudeSrv.getMCPServerWithStatus(name);
+      if (!server) {
+        console.error('Server not found:', name);
+        process.exit(1);
+      }
+
+      // Get parameter info from registry if it's a remote server
+      let paramInfo: Record<
+        string,
+        { type: string; required: boolean; description: string }
+      > = {};
+      if (server.info.from === MCPServerConfigSource.REMOTE) {
+        try {
+          const packageInfo = await registrySrv.getPackageInfo(
+            server.info.registryId ?? name
+          );
+          paramInfo = packageInfo.parameters;
+        } catch (error) {
+          console.warn(
+            'Failed to fetch parameter info from registry, proceeding with basic parameter update'
+          );
+        }
+      }
+
+      // Get current parameter values
+      const currentParams = server.info.arguments || {};
+
+      // Ask user which parameters to update
+      const paramChoices = Object.entries(paramInfo).map(([key, info]) => ({
+        title: `${key}${info.required ? ' (required)' : ''}: ${
+          info.description
+        }`,
+        value: key,
+        description: `Current value: ${currentParams[key] || '(not set)'}`,
+      }));
+
+      if (paramChoices.length === 0) {
+        // If no parameter info from registry, ask user to input parameter name
+        const { paramKey } = await prompts({
+          type: 'text',
+          name: 'paramKey',
+          message: 'Enter parameter name to update:',
+        });
+
+        if (!paramKey) {
+          console.log('\nUpdate cancelled');
+          return;
+        }
+
+        const { paramValue } = await prompts({
+          type: 'text',
+          name: 'paramValue',
+          message: `Enter new value for ${paramKey}:`,
+          initial: currentParams[paramKey],
+        });
+
+        if (paramValue === undefined) {
+          console.log('\nUpdate cancelled');
+          return;
+        }
+
+        await claudeSrv.updateMCPServerParams(name, { [paramKey]: paramValue });
+      } else {
+        // If we have parameter info, let user choose which to update
+        const { selectedParams } = await prompts({
+          type: 'multiselect',
+          name: 'selectedParams',
+          message: 'Select parameters to update:',
+          choices: paramChoices,
+        });
+
+        if (!selectedParams || selectedParams.length === 0) {
+          console.log('\nUpdate cancelled');
+          return;
+        }
+
+        const newParams: Record<string, string> = {};
+        for (const param of selectedParams) {
+          const { value } = await prompts({
+            type: 'text',
+            name: 'value',
+            message: `Enter new value for ${param}:`,
+            initial: currentParams[param],
+          });
+
+          if (value === undefined) {
+            console.log('\nUpdate cancelled');
+            return;
+          }
+
+          newParams[param] = value;
+        }
+
+        await claudeSrv.updateMCPServerParams(name, newParams);
+      }
+
+      console.log('Server parameters updated successfully');
+    } catch (error) {
+      console.error('Failed to update server parameters:', error);
+      process.exit(1);
+    }
+  });
+
+program
   .command('restart')
   .description('Restart Claude.app')
   .action(async () => {
     try {
       console.log('Restarting Claude.app...');
-      await claudeSrv.restartClaude();
+      await claudeSrv.restartHostApp();
       console.log('Claude.app has been restarted');
     } catch (error: any) {
       console.error('Failed to restart Claude.app:', error.message);

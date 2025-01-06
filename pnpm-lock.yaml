@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@mcpm/sdk':
-        specifier: ^1.0.5
-        version: 1.0.5
+        specifier: ^1.3.1
+        version: 1.3.1
       '@modelcontextprotocol/sdk':
         specifier: ^1.0.3
         version: 1.0.4
@@ -1014,8 +1014,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
-  '@mcpm/sdk@1.0.5':
-    resolution: {integrity: sha512-BrwdG98kBJ+jhSYQDBsYGX4GGVM/umNrVy1nTpyhAowuB+dM4YEi4BUcSKczBRalUtGMYu+ebVyZifJMHgZrDg==}
+  '@mcpm/sdk@1.3.1':
+    resolution: {integrity: sha512-X/p+XTHt8cnPVLJLgCCwjfnyaGIe/UOmeN+FFD65Hr54YkCrTTxH8jGS9wjGH+5YBOtzK4Dyy2F1i7z1mTtoZw==}
     engines: {node: '>=12.0'}
 
   '@modelcontextprotocol/sdk@1.0.4':
@@ -4377,10 +4377,10 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@mcpm/sdk@1.0.5':
+  '@mcpm/sdk@1.3.1':
     dependencies:
       '@modelcontextprotocol/sdk': 1.0.4
-      chalk: 5.4.1
+      chalk: 4.1.2
       conf: 13.1.0
       env-paths: 3.0.0
       prompts: 2.4.2
