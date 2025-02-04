@@ -10,6 +10,7 @@ import {
   startMCPServer,
   stringifyServerToTitle,
 } from '@mcpm/sdk';
+import { generateToolPrompt } from './mcp-proxy/toolprompt.js';
 import { version } from './utils/version.js';
 import { formatMCPServers } from './utils/formatter.js';
 
@@ -537,5 +538,18 @@ program
   });
 
 program.command('prepare').description('Prepare Claude.app for MCPM');
+
+program
+  .command('toolprompt')
+  .description('Generate tool use prompt with all available MCP servers')
+  .action(async () => {
+    try {
+      const servers = await claudeSrv.getAllMCPServersWithStatus();
+      console.log(await generateToolPrompt(servers));
+    } catch (error) {
+      console.error('Error:', (error as Error).message);
+      process.exit(1);
+    }
+  });
 
 program.parse(process.argv);
