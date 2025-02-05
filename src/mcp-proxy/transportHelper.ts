@@ -21,8 +21,11 @@ export function getArgumentsWithFallback(server: MCPServerWithStatus): Record<st
  */
 export function buildTransportForServer(server: MCPServerWithStatus): StdioClientTransport {
   const args = getArgumentsWithFallback(server);
-  const env = server.info.appConfig?.env || {};
-
+  const rawEnv = server.info.appConfig?.env || {};
+  const env: Record<string, string> = {};
+  for (const [key, value] of Object.entries(rawEnv)) {
+    env[key] = replacePlaceholders(value, args);
+  }
 
   return new StdioClientTransport({
     command: server.info.appConfig.command,
