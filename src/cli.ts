@@ -552,4 +552,21 @@ program
     }
   });
 
+program
+  .command('call')
+  .description('Call an MCP server tool function')
+  .argument('<tool>', 'MCP server tool identifier')
+  .argument('<function>', 'Function name to call')
+  .argument('<parameters>', 'Parameters in JSON format')
+  .action(async (tool: string, functionName: string, parameters: string) => {
+    try {
+      const parsedParameters = JSON.parse(parameters);
+      const { callToolFunction } = await import('./mcp-proxy/call.js');
+      await callToolFunction(tool, functionName, parsedParameters);
+    } catch (error) {
+      console.error('Error:', error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
+  });
+
 program.parse(process.argv);
