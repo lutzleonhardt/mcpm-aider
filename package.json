@@ -29,13 +29,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/lutzleonhardt/mcpm.git"
+    "url": "https://github.com/lutzleonhardt/mcpm-aider.git"
   },
   "license": "AGPL-3.0-only",
   "author": {
     "name": "Pilots of AI (Lutz Leonhardt)",
     "email": "kontakt@lutzleonhardt.de",
-    "url": "https://github.com/lutzleonhardt/mcpm"
+    "url": "https://github.com/lutzleonhardt/mcpm-aider"
   },
   "engines": {
     "node": ">=12.0"
@@ -54,9 +54,9 @@
     "codecov"
   ],
   "bugs": {
-    "url": "https://github.com/lutzleonhardt/mcpm/issues"
+    "url": "https://github.com/lutzleonhardt/mcpm-aider/issues"
   },
-  "homepage": "https://github.com/lutzleonhardt/mcpm#readme",
+  "homepage": "https://github.com/lutzleonhardt/mcpm-aider#readme",
   "contributors": [
     {
       "name": "MCP Club",
