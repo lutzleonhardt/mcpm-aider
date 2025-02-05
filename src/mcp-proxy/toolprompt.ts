@@ -11,7 +11,10 @@ export async function generateToolPrompt(
     enabledServers.map(async server => {
       const transport = new StdioClientTransport({
         command: server.info.appConfig.command,
-        args: server.info.appConfig.args || [],
+        args: (server.info.appConfig.args || []).map(arg => {
+          const placeholderMatch = arg.match(/^\*\*(.+)\*\*$/);
+          return placeholderMatch ? server.info.arguments[placeholderMatch[1]] ?? arg : arg;
+        }),
         env: { ...getDefaultEnvironment(), ...server.info.appConfig.env },
       });
 
