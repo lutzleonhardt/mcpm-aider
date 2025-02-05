@@ -54,12 +54,14 @@ export async function generateToolPrompt(
   If you decide to call a function of a tool, please execute this bash command:
   
   \`\`\`bash
-  mcpm call <tool> <function> <parameters>
+  mcpm call <tool> <function> '<parameters as jsonstring>'
   \`\`\`
   
   ## *Example*
   \`\`\`bash
-  mcpm call @calclavia/mcp-obsidian read_notes {"paths": ["path/to/notes"]}
+  
+  mcpm call @calclavia/mcp-obsidian read_notes '{"paths": ["path/to/notes"]}'
+  
   \`\`\`
     
   ${serverSections.join('\n---\n')}`;
