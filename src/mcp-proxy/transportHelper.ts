@@ -4,7 +4,7 @@ import { StdioClientTransport, getDefaultEnvironment } from '@modelcontextprotoc
 /**
  * Replace placeholders in an argument using the provided arguments object.
  */
-export function replacePlaceholdersInArg(arg: string, argumentsObj: Record<string, string>): string {
+export function replacePlaceholders(arg: string, argumentsObj: Record<string, string>): string {
   const placeholderMatch = arg.match(/^\*\*(.+)\*\*$/);
   return placeholderMatch ? argumentsObj[placeholderMatch[1]] ?? arg : arg;
 }
@@ -20,14 +20,18 @@ export function getArgumentsWithFallback(server: MCPServerWithStatus): Record<st
  * Builds and returns a configured StdioClientTransport instance for the given MCPServerWithStatus.
  */
 export function buildTransportForServer(server: MCPServerWithStatus): StdioClientTransport {
+  const args = getArgumentsWithFallback(server);
+  const env = server.info.appConfig?.env || {};
+
+
   return new StdioClientTransport({
     command: server.info.appConfig.command,
     args: (server.info.appConfig.args || []).map(arg =>
-      replacePlaceholdersInArg(arg, getArgumentsWithFallback(server))
+      replacePlaceholders(arg, args)
     ),
     env: {
       ...getDefaultEnvironment(),
-      ...(server.info.appConfig?.env || {}),
+      ...env
     },
   });
 }
