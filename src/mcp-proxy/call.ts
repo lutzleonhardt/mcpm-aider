@@ -28,7 +28,7 @@ export async function callToolFunction(
 
     // Call the tool function.
     // NOTE: The params structure here is a placeholder and should be adjusted to match your server's API.
-    const result = await client.callTool({ function: functionName, parameters });
+    const result = await client.callTool({ name: functionName, arguments:parameters });
     console.log('Tool call result:', result);
   } catch (error) {
     console.error(
