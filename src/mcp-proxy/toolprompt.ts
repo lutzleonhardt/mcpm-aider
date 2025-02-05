@@ -1,18 +1,7 @@
 import type { MCPServerWithStatus } from '@mcpm/sdk';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import {
-  getDefaultEnvironment,
-  StdioClientTransport,
-} from '@modelcontextprotocol/sdk/client/stdio.js';
-
-function replacePlaceholdersInArg(arg: string, argumentsObj: Record<string, string>): string {
-  const placeholderMatch = arg.match(/^\*\*(.+)\*\*$/);
-  return placeholderMatch ? argumentsObj[placeholderMatch[1]] ?? arg : arg;
-}
-
-function getArgumentsWithFallback(server: MCPServerWithStatus): Record<string, string> {
-  return server.info.arguments ?? {};
-}
+import { StdioClientTransport, getDefaultEnvironment } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { buildTransportForServer } from './transportHelper.js';
 
 export async function generateToolPrompt(
   servers: MCPServerWithStatus[]
@@ -21,16 +10,7 @@ export async function generateToolPrompt(
 
   const serverSections = await Promise.all(
     enabledServers.map(async server => {
-      const transport = new StdioClientTransport({
-        command: server.info.appConfig.command,
-        args: (server.info.appConfig.args || []).map(arg => 
-          replacePlaceholdersInArg(arg, getArgumentsWithFallback(server))
-        ),
-        env: { 
-          ...getDefaultEnvironment(), 
-          ...(server.info.appConfig?.env || {}) 
-        },
-      });
+      const transport = buildTransportForServer(server);
 
       let section = `## tool: ${server.info.name}\n\n`;
 

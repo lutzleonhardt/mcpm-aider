@@ -1,6 +1,6 @@
 import { HostService, HostType } from '@mcpm/sdk';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { buildTransportForServer } from './transportHelper.js';
 
 export async function callToolFunction(
   tool: string,
@@ -13,22 +13,39 @@ export async function callToolFunction(
     throw new Error(`MCP server with identifier '${tool}' is not available or not enabled.`);
   }
 
-  // Setup the transport using the server's configuration
-  const transport = new StdioClientTransport({
-    command: server.info.appConfig.command,
-    args: server.info.appConfig.args || [],
-    env: server.info.appConfig.env ? { ...server.info.appConfig.env } : {}
-  });
+  // Validate parameters
+  if (typeof parameters !== 'object' || parameters === null) {
+    throw new Error("Invalid parameters: Expected a JSON object. Please check your JSON formatting.");
+  }
+
+  // Debug log if environment variable DEBUG is set
+  if (process.env.DEBUG) {
+    console.debug("Transport configuration (server arguments/env):", {
+      args: server.info.appConfig.args,
+      env: server.info.appConfig.env,
+    });
+  }
+
+  // Use the helper to build the transport with proper environment and placeholder replacement
+  const transport = buildTransportForServer(server);
 
   try {
-    // Start the transport and connect the client
-    await transport.start();
+    // Try to start the transport
+    try {
+      await transport.start();
+    } catch (startError) {
+      console.error(
+        `Could not spawn process using command '${server.info.appConfig.command}'. ` +
+        `Please verify the command path, permissions, and that the executable exists.`
+      );
+      throw startError;
+    }
+
     const client = new Client({ name: tool, version: '1.0.0' });
     await client.connect(transport);
 
-    // Call the tool function.
-    // NOTE: The params structure here is a placeholder and should be adjusted to match your server's API.
-    const result = await client.callTool({ name: functionName, arguments:parameters });
+    // Call the tool function
+    const result = await client.callTool({ name: functionName, arguments: parameters });
     console.log('Tool call result:', result);
   } catch (error) {
     console.error(
