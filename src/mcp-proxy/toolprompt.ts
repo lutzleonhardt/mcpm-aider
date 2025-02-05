@@ -1,9 +1,12 @@
 import type { MCPServerWithStatus } from '@mcpm/sdk';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { getDefaultEnvironment, StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import {
+  getDefaultEnvironment,
+  StdioClientTransport,
+} from '@modelcontextprotocol/sdk/client/stdio.js';
 
 export async function generateToolPrompt(
-  servers: MCPServerWithStatus[],
+  servers: MCPServerWithStatus[]
 ): Promise<string> {
   const enabledServers = servers.filter(s => s.enabled);
 
@@ -13,15 +16,14 @@ export async function generateToolPrompt(
         command: server.info.appConfig.command,
         args: (server.info.appConfig.args || []).map(arg => {
           const placeholderMatch = arg.match(/^\*\*(.+)\*\*$/);
-          return placeholderMatch ? server.info.arguments[placeholderMatch[1]] ?? arg : arg;
+          return placeholderMatch
+            ? server.info.arguments[placeholderMatch[1]] ?? arg
+            : arg;
         }),
         env: { ...getDefaultEnvironment(), ...server.info.appConfig.env },
       });
 
-      console.log('Server transport configuration:', server.info.appConfig.args, server.info.arguments);
-
-
-      let section = `## Server: ${server.info.name}\n`;
+      let section = `## tool: ${server.info.name}\n\n`;
 
       try {
         const client = new Client({ name: 'ToolPromptGen', version: '1.0.0' });
@@ -33,24 +35,14 @@ export async function generateToolPrompt(
         }
 
         for (const tool of tools) {
-          section += `### ${tool.name}\n${
+          section += `### function: ${tool.name}\n${
             tool.description?.trim() ? `${tool.description}\n` : ''
           }`;
 
-          if (tool.inputSchema?.properties) {
-            section += '**Parameters**:\n';
-            for (const [param, schema] of Object.entries(
-              tool.inputSchema.properties,
-            )) {
-              const type =
-                (schema as any)._def?.typeName.replace('Zod', '') || 'any';
-              // @ts-expect-error - Zod schema desc from practical use
-              const desc = schema.description ? ` - ${schema.description}` : '';
-              section += `- \`${param}\` (${type})${desc}\n`;
-            }
-          }
-          section += '\n';
+          section += '**Parameters**:\n';
+          section += JSON.stringify(tool.inputSchema || {}) + '\n\n';
         }
+        section += '\n';
       } catch (error) {
         section += `\n**ERROR**: ${
           error instanceof Error ? error.message : 'Failed to retrieve tools'
@@ -60,8 +52,26 @@ export async function generateToolPrompt(
       }
 
       return section;
-    }),
+    })
   );
 
-  return `# Available AI Tools\n\n${serverSections.join('\n---\n')}`;
+  return `# Available Tools
+  
+  When this prompt is loaded, always say to the user EXACTLY THIS:
+  "I am aware of MCP Tools!"
+  (You can also mention the tools you are aware of)
+  
+  ## *Usage*
+  If you decide to call a function of a tool, please execute this bash command:
+  
+  \`\`\`bash
+  mcpm call <tool> <function> <parameters>
+  \`\`\`
+  
+  ## *Example*
+  \`\`\`bash
+  mcpm call @calclavia/mcp-obsidian read_notes {"paths": ["path/to/notes"]}
+  \`\`\`
+    
+  ${serverSections.join('\n---\n')}`;
 }
