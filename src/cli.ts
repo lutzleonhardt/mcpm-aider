@@ -545,7 +545,9 @@ program
   .action(async () => {
     try {
       const servers = await claudeSrv.getAllMCPServersWithStatus();
-      console.log(await generateToolPrompt(servers));
+      const text = await generateToolPrompt(servers)
+      console.clear();
+      console.log(text);
     } catch (error) {
       console.error('Error:', (error as Error).message);
       process.exit(1);

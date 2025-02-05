@@ -1,5 +1,5 @@
 {
-  "name": "@mcpm/cli",
+  "name": "@poai/mcpm-aider",
   "version": "1.6.3",
   "description": "Your MCP CLI Manager. Helps you install/remove/search your MCP projects. You can also manage your MCP in Claude App with natural language.",
   "main": "lib/cli.js",
@@ -10,7 +10,7 @@
     "bin/**/*"
   ],
   "bin": {
-    "mcpm": "./bin/index.js"
+    "mcpm-aider": "./bin/index.js"
   },
   "type": "module",
   "scripts": {
@@ -24,7 +24,7 @@
     "test:watch": "jest --config jest.config.cjs --watch",
     "test": "jest --config jest.config.cjs",
     "typecheck": "tsc --noEmit",
-    "release": "npm run build && npm publish --access public",
+    "release": "npm run build && npm publish --access public --scope=@poai",
     "release:beta": "npm run build && npm publish --tag beta --access public"
   },
   "repository": {

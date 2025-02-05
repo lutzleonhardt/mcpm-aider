@@ -39,6 +39,7 @@ export async function callToolFunction(
     const toolsResponse = await client.listTools();
     const toolInfo = toolsResponse.tools.find(t => t.name === functionName);
     if (toolInfo && toolInfo.inputSchema) {
+      // @ts-ignore: Ajv works at runtime despite the TypeScript error
       const ajv = new Ajv();
       const validate = ajv.compile(toolInfo.inputSchema);
       if (!validate(parameters)) {

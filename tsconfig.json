@@ -12,6 +12,7 @@
     "allowJs": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
+    "moduleDetection": "force",
     "types": ["node", "jest"]
   },
   "include": ["src/**/*.ts"],
