@@ -31,17 +31,7 @@ export async function callToolFunction(
   const transport = buildTransportForServer(server);
 
   try {
-    // Try to start the transport
-    try {
-      await transport.start();
-    } catch (startError) {
-      console.error(
-        `Could not spawn process using command '${server.info.appConfig.command}'. ` +
-        `Please verify the command path, permissions, and that the executable exists.`
-      );
-      throw startError;
-    }
-
+    // No need to explicitly start the transport; Client.connect() calls start() automatically.
     const client = new Client({ name: tool, version: '1.0.0' });
     await client.connect(transport);
 
