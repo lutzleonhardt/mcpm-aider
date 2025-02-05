@@ -1,7 +1,7 @@
 {
   "name": "@poai/mcpm-aider",
-  "version": "1.6.3",
-  "description": "Your MCP CLI Manager. Helps you install/remove/search your MCP projects. You can also manage your MCP in Claude App with natural language.",
+  "version": "1.0.0",
+  "description": "Your MCP CLI Manager for aider(forked from @mcpm/cli). Helps you install/remove/search your MCP projects. You can also manage your MCP in Claude App with natural language.",
   "main": "lib/cli.js",
   "types": "lib/cli.d.ts",
   "files": [
@@ -29,18 +29,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mcp-club/mcpm.git"
+    "url": "https://github.com/lutzleonhardt/mcpm.git"
   },
   "license": "AGPL-3.0-only",
   "author": {
-    "name": "MCP Club",
-    "email": "winrey@users.noreply.github.com",
-    "url": "https://github.com/mcp-club"
+    "name": "Pilots of AI (Lutz Leonhardt)",
+    "email": "kontakt@lutzleonhardt.de",
+    "url": "https://github.com/lutzleonhardt/mcpm"
   },
   "engines": {
     "node": ">=12.0"
   },
   "keywords": [
+    "aider",
     "boilerplate",
     "cli",
     "template",
@@ -53,9 +54,15 @@
     "codecov"
   ],
   "bugs": {
-    "url": "https://github.com/mcp-club/mcpm/issues"
+    "url": "https://github.com/lutzleonhardt/mcpm/issues"
   },
-  "homepage": "https://github.com/mcp-club/mcpm#readme",
+  "homepage": "https://github.com/lutzleonhardt/mcpm#readme",
+  "contributors": [
+    {
+      "name": "MCP Club",
+      "url": "https://github.com/mcp-club"
+    }
+  ],
   "dependencies": {
     "@mcpm/sdk": "^1.3.1",
     "@modelcontextprotocol/sdk": "^1.4.1",

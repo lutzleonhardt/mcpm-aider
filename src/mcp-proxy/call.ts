@@ -1,3 +1,10 @@
+/**
+ * Copyright (C) 2024 PoAI (Lutz Leonhardt)
+ * This file is part of mcpm, based on work by MCP Club
+ * Licensed under the GNU AGPL v3.0
+ * See LICENSE file for details
+ */
+
 import { HostService, HostType } from '@mcpm/sdk';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { buildTransportForServer } from './transportHelper.js';
