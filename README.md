@@ -36,7 +36,7 @@ pipx install perplexity-mcp
 uv pip install perplexity-mcp
 ```
 
-Inside of aider you can now run:
+Inside of aider (you should not source the venv otherwise /run could not find uv, npm, ...) you can now run:
 
 ```bash
 /run mcpm-aider toolprompt

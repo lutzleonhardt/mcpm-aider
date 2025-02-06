@@ -57,7 +57,8 @@ export async function generateToolPrompt(
   (You can also mention the tools you are aware of)
   
   ## *Usage*
-  If you decide to call a function of a tool, please execute this bash command:
+  If you decide to call a function of a tool, please execute this bash command.
+  **Do not include ' or line breaks in <parameters as jsonstring> to not break the json in this one-liner.**
   
   \`\`\`bash
   mcpm-aider call <tool> <function> '<parameters as jsonstring>'
