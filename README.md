@@ -63,7 +63,7 @@ The LLM will then call the tool and return the result with the help of `mcpm-aid
 ## Installation
 
 ```bash
-npm install -g @poit/mcpm-aider
+npm install -g @poai/mcpm-aider
 ```
 
 ## Usage
