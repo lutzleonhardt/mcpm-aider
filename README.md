@@ -27,7 +27,7 @@ First you install some MCP servers:
 mcpm-aider install @jsonallen/perplexity-mcp
 ```
 This tool is originally written to maintain MCP servers for Claude App. So you need to ensure the claude config file is there.
-Under Linux it is `~/.config/claude/claude.json`, under Windows it is `%APPDATA%\claude\claude.json`. (But consult Claude docs for this or install Claude Desktop App).
+Under Windows it is `%APPDATA%\Claude\claude_desktop_config.json`, under Linux it is `~/.config/Claude/claude_desktop_config.json` and under MacOS it is `~/Library/Application Support/Claude/claude_desktop_config.json`. (But consult Claude docs for this or install Claude Desktop App).
 
 Most of the time you also need to install the dependencies of the MCP server (looking at the README of the MCP server). In this case:
 
