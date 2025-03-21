@@ -117,3 +117,7 @@ dist
 
 # Compiled code
 lib/
+
+# JetBrains IDE related files
+.idea/
+.aider*
