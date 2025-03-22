@@ -1,0 +1,4 @@
+[submodule "python/mcp-bridge"]
+	path = python/mcp-bridge
+	url = https://github.com/lutzleonhardt/MCP-Bridge.git
+	branch = feat/mcpm-aider
