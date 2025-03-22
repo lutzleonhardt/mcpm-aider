@@ -125,7 +125,8 @@ export async function getEnabledMCPServersAsJson(): Promise<string> {
   return JSON.stringify(result, null, 2);
 }
 
-export async function startBridge(options: { sync?: boolean } = {}): Promise<void> {
+export async function startBridge(options: { server?: string } = {}): Promise<void> {
+  const serverUrl = options.server || 'https://api.anthropic.com/v1/';
   console.log('Starting MCP-Bridge...');
 
   // Check if UV is installed
@@ -161,7 +162,8 @@ export async function startBridge(options: { sync?: boolean } = {}): Promise<voi
   await syncDependencies(mcpBridgePath, currentDir);
 
   // TODO: Start the MCP-Bridge Python process
-
+  console.log(`Starting MCP-Bridge with server: ${serverUrl}`);
+  
   console.log('MCP-Bridge started (placeholder implementation)');
   console.log(await getEnabledMCPServersAsJson());
 }

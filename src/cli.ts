@@ -582,7 +582,8 @@ program
 program
   .command('start-bridge')
   .description('Start the MCP-Bridge Python service')
-  .action(async (options: { sync?: boolean }) => {
+  .option('--server <url>', 'API server URL', 'https://api.anthropic.com/v1/')
+  .action(async (options: { server?: string }) => {
     try {
       await startBridge(options);
     } catch (error) {
