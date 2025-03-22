@@ -582,7 +582,6 @@ program
 program
   .command('start-bridge')
   .description('Start the MCP-Bridge Python service')
-  .option('--sync', 'Force sync Python dependencies before starting')
   .action(async (options: { sync?: boolean }) => {
     try {
       await startBridge(options);
