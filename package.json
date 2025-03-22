@@ -1,12 +1,13 @@
 {
   "name": "@poai/mcpm-aider",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "Your MCP CLI Manager for aider(forked from @mcpm/cli). Helps you install/remove/search your MCP projects. You can also manage your MCP in Claude App with natural language.",
   "main": "lib/cli.js",
   "types": "lib/cli.d.ts",
   "files": [
     "!lib/__tests__/**/*",
     "lib/**/*",
+    "lib/python/**/*",
     "bin/**/*"
   ],
   "bin": {
@@ -14,7 +15,8 @@
   },
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-python",
+    "copy-python": "mkdir -p lib/python && cp -r python/* lib/python/",
     "clean": "rm -rf ./lib/",
     "cm": "cz",
     "lint": "eslint --config .eslintrc.cjs ./src/ --fix",
