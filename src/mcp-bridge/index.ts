@@ -103,6 +103,28 @@ async function syncDependencies(mcpBridgePath: string, currentDir: string): Prom
   }
 }
 
+import { HostService, HostType } from '@mcpm/sdk';
+
+/**
+ * Gets enabled MCP servers in a simplified format as a JSON string
+ * @returns A JSON string of server names to their command and args
+ */
+export async function getEnabledMCPServersAsJson(): Promise<string> {
+  const claudeSrv = HostService.getInstanceByType(HostType.CLAUDE);
+  const enabledServers = await claudeSrv.getEnabledMCPServers();
+
+  const result: Record<string, { command: string; args: string[] }> = {};
+
+  for (const [name, serverInfo] of Object.entries(enabledServers)) {
+    result[name] = {
+      command: serverInfo.appConfig.command,
+      args: serverInfo.appConfig.args || []
+    };
+  }
+
+  return JSON.stringify(result, null, 2);
+}
+
 export async function startBridge(options: { sync?: boolean } = {}): Promise<void> {
   console.log('Starting MCP-Bridge...');
 
@@ -141,4 +163,5 @@ export async function startBridge(options: { sync?: boolean } = {}): Promise<voi
   // TODO: Start the MCP-Bridge Python process
 
   console.log('MCP-Bridge started (placeholder implementation)');
+  console.log(await getEnabledMCPServersAsJson());
 }
