@@ -1,6 +1,6 @@
 {
   "name": "@poai/mcpm-aider",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "Your MCP CLI Manager for aider(forked from @mcpm/cli). Helps you install/remove/search your MCP projects. You can also manage your MCP in Claude App with natural language.",
   "main": "lib/cli.js",
   "types": "lib/cli.d.ts",
@@ -27,7 +27,7 @@
     "test": "jest --config jest.config.cjs",
     "typecheck": "tsc --noEmit",
     "release": "npm run build && npm publish --access public --scope=@poai",
-    "release:beta": "npm run build && npm publish --tag beta --access public"
+    "release:beta": "npm run build && npm publish --tag beta --access public --scope=@poai"
   },
   "repository": {
     "type": "git",

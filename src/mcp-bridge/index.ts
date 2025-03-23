@@ -8,6 +8,7 @@
 import { spawn } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+import { fileURLToPath } from 'url';
 
 /**
  * Checks if UV is installed on the system
@@ -146,13 +147,17 @@ export async function startBridge(options: { server?: string } = {}): Promise<vo
   // Always run uv sync
   console.log('Syncing Python dependencies...');
 
+  // Get the directory where this script is located in ESM context
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
   // Determine if we're in development or production mode
-  const isDev = fs.existsSync(path.join(process.cwd(), 'src'));
+  const isDev = fs.existsSync(path.join(__dirname, '..', '..', 'src'));
 
   // Set the appropriate path to mcp-bridge directory
   const mcpBridgePath = isDev
-    ? path.join(process.cwd(), 'python', 'mcp-bridge')
-    : path.join(process.cwd(), 'lib', 'python', 'mcp-bridge');
+    ? path.join(__dirname, '..', '..', 'python', 'mcp-bridge')
+    : path.join(__dirname, '..', 'python', 'mcp-bridge');
 
   // Store current directory
   const currentDir = process.cwd();
