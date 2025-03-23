@@ -20,6 +20,7 @@ import {
 import { generateToolPrompt } from './mcp-proxy/toolprompt.js';
 import { version } from './utils/version.js';
 import { formatMCPServers } from './utils/formatter.js';
+import { startBridge } from './mcp-bridge/index.js';
 
 const program = new Command();
 
@@ -574,6 +575,19 @@ program
       await callToolFunction(tool, functionName, parsedParameters);
     } catch (error) {
       console.error('Error:', error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('start-bridge')
+  .description('Start the MCP-Bridge Python service')
+  .option('--server <url>', 'API server URL', 'https://api.anthropic.com/v1/')
+  .action(async (options: { server?: string }) => {
+    try {
+      await startBridge(options);
+    } catch (error) {
+      console.error('Error starting MCP-Bridge:', (error as Error).message);
       process.exit(1);
     }
   });
