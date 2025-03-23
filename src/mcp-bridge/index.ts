@@ -154,16 +154,52 @@ export async function startBridge(options: { server?: string } = {}): Promise<vo
     ? path.join(process.cwd(), 'python', 'mcp-bridge')
     : path.join(process.cwd(), 'lib', 'python', 'mcp-bridge');
 
-  // console.log(`Using MCP-Bridge path: ${mcpBridgePath}`);
-
   // Store current directory
   const currentDir = process.cwd();
 
   await syncDependencies(mcpBridgePath, currentDir);
 
-  // TODO: Start the MCP-Bridge Python process
+  // Get the enabled MCP servers as JSON
+  const mcpServersJson = await getEnabledMCPServersAsJson();
+  
   console.log(`Starting MCP-Bridge with server: ${serverUrl}`);
   
-  console.log('MCP-Bridge started (placeholder implementation)');
-  console.log(await getEnabledMCPServersAsJson());
+  // Change to mcp-bridge directory to run the bridge
+  process.chdir(mcpBridgePath);
+  
+  try {
+    // Start the MCP-Bridge Python process with inherited stdio to forward all output
+    const bridgeProcess = spawn('uv', [
+      'run',
+      'mcp_bridge/main.py',
+      '--inference_server.base_url', serverUrl,
+      '--mcp_servers', mcpServersJson
+    ], { 
+      stdio: 'inherit',
+      // Use shell option on Windows to handle special characters in the JSON string
+      shell: process.platform === 'win32'
+    });
+
+    // Set up proper handling for process exit
+    bridgeProcess.on('error', (error) => {
+      console.error(`Error starting MCP-Bridge: ${error.message}`);
+      process.chdir(currentDir); // Return to original directory
+    });
+    
+    // Handle SIGINT (Ctrl+C) to gracefully terminate the bridge
+    process.on('SIGINT', () => {
+      console.log('\nTerminating MCP-Bridge...');
+      bridgeProcess.kill();
+      process.chdir(currentDir);
+      // Give the process a moment to clean up before exiting
+      setTimeout(() => process.exit(0), 500);
+    });
+    
+    // We don't have a return statement here, so the CLI process will remain open
+    // until the bridge process terminates
+  } catch (error) {
+    // Change back to original directory if an error occurs
+    process.chdir(currentDir);
+    throw error;
+  }
 }
