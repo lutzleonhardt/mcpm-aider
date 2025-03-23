@@ -76,7 +76,7 @@ The LLM will parse this request and execute the appropriate tool call using `mcp
 A more elegant approach is to use the new MCP-Bridge, which creates an OpenAI-compatible proxy that handles tool calls:
 
 ```bash
-/run mcpm-aider start-bridge
+mcpm-aider start-bridge
 ```
 
 This starts a local Python service that:
@@ -92,7 +92,7 @@ This starts a local Python service that:
 The bridge service can use different inference servers by providing the `--server` option:
 
 ```bash
-/run mcpm-aider start-bridge --server https://api.openai.com/v1/
+mcpm-aider start-bridge --server https://api.openai.com/v1/
 ```
 
 The proxy uses the API key it receives from the caller as a header, so you don't need to set up API keys in MCPM. This allows you to keep using your existing API keys while benefiting from MCP tool functionality.
