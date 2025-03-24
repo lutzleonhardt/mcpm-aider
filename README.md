@@ -11,7 +11,9 @@ A command-line tool for managing MCP servers in Claude App.
 ## Extension for aider
 
 [![YouTube Video](https://img.youtube.com/vi/OM1h4YDPjRU/maxresdefault.jpg)](https://www.youtube.com/watch?v=OM1h4YDPjRU)
-[YouTube Explanation](https://www.youtube.com/watch?v=OM1h4YDPjRU)
+
+[YouTube Link: How to use mcpm-aider with toolprompt](https://www.youtube.com/watch?v=OM1h4YDPjRU)
+[YouTube Link: How to use mcpm-aider with MCP-Bridge ](https://www.youtube.com/watch?v=2fT0vSsB01g)
 
 This is a fork of [mcpm/cli](https://github.com/mcp-club/cli) with additional features for use with aider.
 Treat this as an experiment on how to use MCP servers with aider without modifying aider source code UNTIL native MCP support becomes available.
@@ -96,6 +98,8 @@ mcpm-aider start-bridge --server https://api.openai.com/v1/
 ```
 
 The proxy uses the API key it receives from the caller as a header, so you don't need to set up API keys in MCPM. This allows you to keep using your existing API keys while benefiting from MCP tool functionality.
+
+Hint: AFAIK this is NOT working with Openrouter as they do not support tool calling with their OpenAI-compatible endpoints.
 
 ### Example Configurations for Aider
 
