@@ -13,6 +13,7 @@ A command-line tool for managing MCP servers in Claude App.
 [![YouTube Video](https://img.youtube.com/vi/OM1h4YDPjRU/maxresdefault.jpg)](https://www.youtube.com/watch?v=OM1h4YDPjRU)
 
 [YouTube Link: How to use mcpm-aider with toolprompt](https://www.youtube.com/watch?v=OM1h4YDPjRU)
+
 [YouTube Link: How to use mcpm-aider with MCP-Bridge ](https://www.youtube.com/watch?v=2fT0vSsB01g)
 
 This is a fork of [mcpm/cli](https://github.com/mcp-club/cli) with additional features for use with aider.
