@@ -59,20 +59,45 @@ uv pip install perplexity-mcp
 
 ## 2. Using MCP with Aider via Toolprompt
 
-Once you have your MCP servers installed, you can use the toolprompt method to integrate them with aider:
+⚠️ **Important: This method requires Aider's `/code` mode**
 
-```bash
-/run mcpm-aider toolprompt
+The toolprompt method generates bash commands in the format `mcpm-aider call <tool> <function> '<params>'` for the LLM to execute. Aider's `/code` mode is required to automatically execute these bash commands. Without `/code` mode, Aider will interpret the code fences as file edits instead of shell commands, resulting in errors.
+
+Using the `--yes` flag when starting Aider enables automatic command execution without confirmation prompts.
+
+### Step-by-Step Workflow
+
+1. **Start Aider with the `--yes` flag:**
+   ```bash
+   aider --yes
+   ```
+
+2. **Switch to `/code` mode:**
+   ```
+   /code
+   ```
+
+3. **Generate the tool prompt:**
+   ```
+   /run mcpm-aider toolprompt
+   ```
+
+4. **Ask the LLM to use a tool:**
+   ```
+   Please ask perplexity about the sense of life
+   ```
+   
+   The LLM will parse your request and automatically execute the appropriate tool call using `mcpm-aider call`.
+
+### What Happens Without `/code` Mode?
+
+If you don't use `/code` mode, you'll encounter errors like:
+```
+The LLM did not conform to the edit format.
+No filename provided before ``` in file listing
 ```
 
-This will generate a prompt describing all available tools and attach it to your chat. 
-
-You can then use the tools directly in your prompts, for example:
-"Please ask perplexity about the sense of life"
-
-The LLM will parse this request and execute the appropriate tool call using `mcpm-aider call`.
-
-**Hint**: Only in /code mode aider auto-executes your terminal commands. This is handy in conjunction with aider `--yes`.
+This happens because Aider's default mode interprets code fences as file edit blocks (SEARCH/REPLACE format), not as shell commands to execute. Since the LLM generates bash commands wrapped in code fences, Aider tries to parse them as file edits and fails.
 
 ## 3. Using MCP with Aider via Bridge Service
 
